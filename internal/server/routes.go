@@ -6,4 +6,5 @@ func (s *Server) registerRoutes(r chi.Router) {
 	r.Get("/", s.indexHandler())
 	r.Get("/in", s.dashboardHandler())
 	r.Post("/login", s.loginHandler())
+	r.Post("/logout", s.logoutHandler())
 }

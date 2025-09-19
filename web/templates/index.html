@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>auth test</title>
+    <title>Auth Demo</title>
     <link
       rel="stylesheet"
       href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.min.css"
@@ -11,20 +11,36 @@
   </head>
   <body>
     <main class="container">
-      <h1>Login</h1>
-      <p>
-        This is a test page for the authentication system. Please log in to
-        continue.
-      </p>
+      <h1>Sign in</h1>
+      <p>Authenticate with the demo credentials below to view the dashboard.</p>
+      <article>
+        <header>Demo account</header>
+        <p><strong>Email:</strong> user@example.com<br /><strong>Password:</strong> password123</p>
+      </article>
+      {{if .Error}}
+      <article class="secondary">
+        <strong>Unable to sign in:</strong> {{.Error}}
+      </article>
+      {{end}}
       <form method="post" action="/login">
+        <label for="email">Email</label>
         <input
           type="email"
           id="email"
+          name="email"
           placeholder="Enter your email"
           required
           autofocus
+          value="{{.Email}}"
         />
-        <input type="password" id="password" placeholder="password" required />
+        <label for="password">Password</label>
+        <input
+          type="password"
+          id="password"
+          name="password"
+          placeholder="Password"
+          required
+        />
         <button type="submit">Login</button>
       </form>
     </main>

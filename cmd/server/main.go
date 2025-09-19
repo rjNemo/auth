@@ -8,7 +8,10 @@ import (
 )
 
 func main() {
-	srv := server.New()
+	srv, err := server.New()
+	if err != nil {
+		log.Fatalf("initialise server: %v", err)
+	}
 
 	log.Println("Starting server on http://localhost:8000")
 	if err := http.ListenAndServe(":8000", srv.Router()); err != nil {
