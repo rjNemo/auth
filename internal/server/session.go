@@ -2,6 +2,12 @@ package server
 
 import "sync"
 
+// SessionState represents the snapshot of session metadata for a request.
+type SessionState struct {
+	Authenticated bool
+	Email         string
+}
+
 // SessionManager is a placeholder for future session persistence.
 type SessionManager struct {
 	mu             sync.RWMutex
@@ -32,18 +38,13 @@ func (m *SessionManager) Clear() {
 	m.currentAccount = ""
 }
 
-// IsAuthenticated reports whether a user is currently considered logged in.
-func (m *SessionManager) IsAuthenticated() bool {
+// Snapshot captures the current session state for contextual use.
+func (m *SessionManager) Snapshot() SessionState {
 	m.mu.RLock()
 	defer m.mu.RUnlock()
 
-	return m.authenticated
-}
-
-// CurrentAccount returns the email associated with the active session.
-func (m *SessionManager) CurrentAccount() string {
-	m.mu.RLock()
-	defer m.mu.RUnlock()
-
-	return m.currentAccount
+	return SessionState{
+		Authenticated: m.authenticated,
+		Email:         m.currentAccount,
+	}
 }

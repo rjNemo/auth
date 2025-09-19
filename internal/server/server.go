@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/go-chi/chi/v5"
+	"github.com/go-chi/chi/v5/middleware"
 
 	"github.com/rjnemo/auth/internal/auth"
 	"github.com/rjnemo/auth/web"
@@ -52,6 +53,13 @@ func New() (*Server, error) {
 // Router returns the configured HTTP router.
 func (s *Server) Router() http.Handler {
 	r := chi.NewRouter()
+	r.Use(
+		middleware.RequestID,
+		middleware.RealIP,
+		middleware.Logger,
+		middleware.Recoverer,
+		s.sessionMiddleware,
+	)
 	s.registerRoutes(r)
 	return r
 }
