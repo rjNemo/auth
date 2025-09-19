@@ -15,6 +15,7 @@
       <p>You are signed in as <strong>{{.Email}}</strong>.</p>
       <p>This placeholder dashboard will evolve as we flesh out the auth flow.</p>
       <form method="post" action="/logout">
+        <input type="hidden" name="_csrf" value="{{.CSRFToken}}" />
         <button type="submit" class="secondary">Sign out</button>
       </form>
     </main>

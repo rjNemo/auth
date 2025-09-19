@@ -2,6 +2,7 @@ package server
 
 import (
 	"context"
+	"crypto/rand"
 	"fmt"
 	"html/template"
 	"net/http"
@@ -23,7 +24,7 @@ const (
 type Server struct {
 	templates   *template.Template
 	authService *auth.Service
-	sessions    *SessionManager
+	sessions    *SessionStore
 }
 
 // New constructs a Server with parsed templates and default state.
@@ -43,10 +44,20 @@ func New() (*Server, error) {
 		return nil, fmt.Errorf("seed user: %w", err)
 	}
 
+	secret := make([]byte, 32)
+	if _, err := rand.Read(secret); err != nil {
+		return nil, fmt.Errorf("session secret: %w", err)
+	}
+
+	sessionStore, err := NewSessionStore(secret)
+	if err != nil {
+		return nil, fmt.Errorf("session store: %w", err)
+	}
+
 	return &Server{
 		templates:   tmpl,
 		authService: auth.NewService(store),
-		sessions:    NewSessionManager(),
+		sessions:    sessionStore,
 	}, nil
 }
 
@@ -59,6 +70,7 @@ func (s *Server) Router() http.Handler {
 		middleware.Logger,
 		middleware.Recoverer,
 		s.sessionMiddleware,
+		s.csrfMiddleware,
 	)
 	s.registerRoutes(r)
 	return r

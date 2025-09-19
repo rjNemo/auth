@@ -23,6 +23,7 @@
       </article>
       {{end}}
       <form method="post" action="/login">
+        <input type="hidden" name="_csrf" value="{{.CSRFToken}}" />
         <label for="email">Email</label>
         <input
           type="email"

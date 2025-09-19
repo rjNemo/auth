@@ -8,10 +8,10 @@ func (s *Server) dashboardHandler() http.HandlerFunc {
 
 		if !state.Authenticated {
 			w.WriteHeader(http.StatusUnauthorized)
-			s.render(w, "unauthorized.html", newUnauthorizedData("Sign in to continue."))
+			s.render(w, "unauthorized.html", newUnauthorizedData("Sign in to continue.", state.CSRFToken))
 			return
 		}
 
-		s.render(w, "in.html", PageData{Email: state.Email})
+		s.render(w, "in.html", PageData{Email: state.Email, CSRFToken: state.CSRFToken})
 	}
 }

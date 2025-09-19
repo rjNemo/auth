@@ -1,50 +1,102 @@
 package server
 
-import "sync"
+import (
+	"crypto/rand"
+	"encoding/base64"
+	"errors"
+	"net/http"
+	"time"
+)
 
-// SessionState represents the snapshot of session metadata for a request.
+const (
+	sessionCookieName          = "auth_session"
+	csrfSessionKey             = "csrf_token"
+	sessionLifetime            = 12 * time.Hour
+	sessionSecretMinLength     = 32
+	csrfTokenByteLength    int = 32
+)
+
+// SessionStore persists session data using secure HTTP cookies.
+type SessionStore struct {
+	secret []byte
+}
+
+// NewSessionStore creates a cookie-backed session store.
+func NewSessionStore(secret []byte) (*SessionStore, error) {
+	if len(secret) < sessionSecretMinLength {
+		return nil, errors.New("session secret must be at least 32 bytes")
+	}
+	// copy secret to avoid external mutation
+	buf := make([]byte, len(secret))
+	copy(buf, secret)
+	return &SessionStore{secret: buf}, nil
+}
+
+// SessionState holds per-request session data after loading.
 type SessionState struct {
 	Authenticated bool
 	Email         string
+	CSRFToken     string
 }
 
-// SessionManager is a placeholder for future session persistence.
-type SessionManager struct {
-	mu             sync.RWMutex
-	authenticated  bool
-	currentAccount string
-}
-
-// NewSessionManager constructs an empty session manager.
-func NewSessionManager() *SessionManager {
-	return &SessionManager{}
-}
-
-// SetAuthenticated marks the provided account as the active authenticated user.
-func (m *SessionManager) SetAuthenticated(email string) {
-	m.mu.Lock()
-	defer m.mu.Unlock()
-
-	m.authenticated = true
-	m.currentAccount = email
-}
-
-// Clear removes any active authentication data.
-func (m *SessionManager) Clear() {
-	m.mu.Lock()
-	defer m.mu.Unlock()
-
-	m.authenticated = false
-	m.currentAccount = ""
-}
-
-// Snapshot captures the current session state for contextual use.
-func (m *SessionManager) Snapshot() SessionState {
-	m.mu.RLock()
-	defer m.mu.RUnlock()
-
-	return SessionState{
-		Authenticated: m.authenticated,
-		Email:         m.currentAccount,
+// Load extracts session data from the request cookies.
+func (s *SessionStore) Load(r *http.Request) SessionState {
+	c, err := r.Cookie(sessionCookieName)
+	if err != nil {
+		return SessionState{}
 	}
+
+	payload, err := decodeSession(c.Value, s.secret)
+	if err != nil {
+		return SessionState{}
+	}
+
+	return payload
+}
+
+// Save persists the session state onto the response cookies.
+func (s *SessionStore) Save(w http.ResponseWriter, state SessionState) error {
+	serialized, err := encodeSession(state, s.secret)
+	if err != nil {
+		return err
+	}
+
+	http.SetCookie(w, &http.Cookie{
+		Name:     sessionCookieName,
+		Value:    serialized,
+		Path:     "/",
+		HttpOnly: true,
+		Secure:   false, // TODO: in production, set to true
+		SameSite: http.SameSiteLaxMode,
+		Expires:  time.Now().Add(sessionLifetime),
+	})
+
+	return nil
+}
+
+// Clear removes the session cookie from the client.
+func (s *SessionStore) Clear(w http.ResponseWriter) {
+	http.SetCookie(w, &http.Cookie{
+		Name:     sessionCookieName,
+		Value:    "",
+		Path:     "/",
+		Expires:  time.Unix(0, 0),
+		MaxAge:   -1,
+		HttpOnly: true,
+		Secure:   false,
+		SameSite: http.SameSiteLaxMode,
+	})
+}
+
+// ensureCSRFToken returns a session state with a CSRF token present.
+func ensureCSRFToken(state SessionState) (SessionState, error) {
+	if state.CSRFToken != "" {
+		return state, nil
+	}
+	token := make([]byte, csrfTokenByteLength)
+	if _, err := rand.Read(token); err != nil {
+		return state, err
+	}
+	state.CSRFToken = base64.RawURLEncoding.EncodeToString(token)
+	return state, nil
 }
