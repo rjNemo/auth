@@ -2,9 +2,11 @@ package server
 
 // PageData contains fields shared by the templates for now.
 type PageData struct {
-	Email     string
-	Error     string
-	CSRFToken string
+	Email        string
+	Error        string
+	CSRFToken    string
+	CreatedAt    string
+	CreatedAtISO string
 }
 
 func newIndexData(email, errMsg, token string) PageData {
@@ -13,4 +15,8 @@ func newIndexData(email, errMsg, token string) PageData {
 
 func newUnauthorizedData(errMsg, token string) PageData {
 	return PageData{Error: errMsg, CSRFToken: token}
+}
+
+func newDashboardData(email, token, createdAt, createdAtISO string) PageData {
+	return PageData{Email: email, CSRFToken: token, CreatedAt: createdAt, CreatedAtISO: createdAtISO}
 }

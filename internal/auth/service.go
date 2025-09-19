@@ -42,3 +42,12 @@ func (s *Service) Authenticate(ctx context.Context, email UserEmail, password st
 
 	return account, nil
 }
+
+// LookupByEmail fetches a user by canonical email.
+func (s *Service) LookupByEmail(ctx context.Context, email UserEmail) (*User, error) {
+	if email.IsZero() {
+		return nil, ErrInvalidInput
+	}
+
+	return s.store.FindByEmail(ctx, email)
+}

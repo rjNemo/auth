@@ -1,6 +1,14 @@
 package server
 
-import "net/http"
+import (
+	"log"
+	"net/http"
+	"time"
+
+	"github.com/rjnemo/auth/internal/auth"
+)
+
+const dashboardTimeDisplayLayout = "02 Jan 2006 15:04 MST"
 
 func (s *Server) dashboardHandler() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
@@ -12,6 +20,23 @@ func (s *Server) dashboardHandler() http.HandlerFunc {
 			return
 		}
 
-		s.render(w, "in.html", PageData{Email: state.Email, CSRFToken: state.CSRFToken})
+		email, err := auth.NewUserEmail(state.Email)
+		if err != nil {
+			log.Printf("dashboard: invalid session email: %v", err)
+			http.Error(w, "session invalid", http.StatusUnauthorized)
+			return
+		}
+
+		account, err := s.authService.LookupByEmail(r.Context(), email)
+		if err != nil {
+			log.Printf("dashboard: lookup failed: %v", err)
+			http.Error(w, "unable to load account", http.StatusInternalServerError)
+			return
+		}
+
+		createdAtISO := account.CreatedAt.Format(time.RFC3339)
+		createdAtDisplay := account.CreatedAt.Format(dashboardTimeDisplayLayout)
+
+		s.render(w, "in.html", newDashboardData(state.Email, state.CSRFToken, createdAtDisplay, createdAtISO))
 	}
 }

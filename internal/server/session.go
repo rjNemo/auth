@@ -3,14 +3,13 @@ package server
 import (
 	"crypto/rand"
 	"encoding/base64"
-	"errors"
+	"fmt"
 	"net/http"
 	"time"
 )
 
 const (
 	sessionCookieName          = "auth_session"
-	csrfSessionKey             = "csrf_token"
 	sessionLifetime            = 12 * time.Hour
 	sessionSecretMinLength     = 32
 	csrfTokenByteLength    int = 32
@@ -24,7 +23,7 @@ type SessionStore struct {
 // NewSessionStore creates a cookie-backed session store.
 func NewSessionStore(secret []byte) (*SessionStore, error) {
 	if len(secret) < sessionSecretMinLength {
-		return nil, errors.New("session secret must be at least 32 bytes")
+		return nil, fmt.Errorf("session secret must be at least %d bytes", sessionSecretMinLength)
 	}
 	// copy secret to avoid external mutation
 	buf := make([]byte, len(secret))
