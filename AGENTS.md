@@ -2,25 +2,25 @@
 
 ## Project Structure & Module Organization
 
-Keep the single Go module defined in `go.mod`. Server entry lives in `main.go`, while `index.html` and `in.html` provide public and authenticated templates beside it. Use `tmp/` strictly for generated artifacts (e.g., binaries, logs); never commit its contents. When expanding the app, group domain-specific handlers and helpers in packages under the repo root.
+Keep the single Go module defined in `go.mod`. The executable entrypoint lives in `cmd/server/main.go`; reusable HTTP and auth helpers belong under `internal/` (e.g., `internal/server`, `internal/auth`). Store templates and static assets beneath `web/` and embed them into the binary so deployments stay self-contained. Reserve `tmp/` for generated artifacts (binaries, logs) and keep it out of version control.
 
 ## Approved Technologies & Dependencies
 
-Favor the Go standard library for routing, templating, crypto, and storage. The only pre-approved third-party package is `github.com/go-chi/chi/v5` for HTTP routing if the standard mux becomes limiting. Front-end interactivity must rely on htmx and Alpine.js with semantic HTML, and Pico.css is the accepted design system. Embed templates, scripts, and styles into the binary using Go's `embed` package so deployments stay self-contained. Avoid introducing other dependencies without prior discussion and an update to this document.
+Favor the Go standard library for routing, templating, crypto, and storage. The only pre-approved third-party package is `github.com/go-chi/chi/v5` when the default mux falls short. Pico.css provides styling, while htmx and Alpine.js deliver client interactivity; stick to semantic HTML. `golangci-lint` is the endorsed aggregator when linting beyond `go vet`. Introduce anything else only after discussion and an update here.
 
 ## Authentication Flow Requirements
 
-Implement email/password authentication with secure password hashing, CSRF protection, and clear failure states. Use semantic forms enhanced by htmx for progressive enhancement and Alpine.js for lightweight client behavior. Persist session state on the server, prefer HTTP-only cookies, and render authenticated views without leaking sensitive data.
+Implement email/password authentication with secure password hashing, CSRF protection, and clear failure states. Use semantic forms enhanced by htmx for progressive enhancement and Alpine.js for lightweight client behavior. Persist session state on the server with HTTP-only cookies and render authenticated views without leaking sensitive data.
 
-## Build, Test, and Development Commands
+## Build, Lint, and Test Commands
 
-- `go run .` starts the dev server on <http://localhost:8000>.
-- `go build -o tmp/auth` emits a clean binary for manual testing.
-- After every change, run `gofmt -w ./...`, `go vet ./...`, and `go test ./...` to ensure formatting, static checks, and regression coverage before you push.
+- `go run ./cmd/server` starts the dev server on <http://localhost:8000>.
+- `go build ./...` (and `go build -o tmp/auth ./cmd/server`) validates compilation before any formatting or linting step.
+- After a successful build, run `gofmt -w ./...`, `go vet ./...`, `golangci-lint run` (if configured), and `go test ./...` to keep style, static checks, and regressions in check.
 
 ## Coding Style & Naming Conventions
 
-Trust `gofmt`; no manual formatting tweaks. Use CamelCase for exported Go identifiers and snake_case for static assets. Keep handlers slim, factor reusable logic into helpers, and add brief comments only when intent is not obvious. Template IDs and Alpine component names should describe their role (e.g., `login_form`).
+Trust `gofmt`; avoid manual formatting. Use CamelCase for exported Go identifiers and snake_case for embedded assets. Keep handlers slim, factor shared logic into helpers, and add concise comments only when intent needs clarification. Template IDs and Alpine component names should reflect their role (e.g., `login_form`).
 
 ## Testing Guidelines
 
@@ -28,7 +28,7 @@ Adopt Go’s `testing` package with table-driven cases. Name files `<feature>_te
 
 ## Commit & Pull Request Guidelines
 
-Follow Conventional Commits (`feat:`, `fix:`, `chore:`). PRs must summarize the change, link relevant issues, include manual verification notes, and attach screenshots or screen recordings for UI updates.
+Follow Conventional Commits (`feat:`, `fix:`, `chore:`). PRs must summarize the change, link relevant issues, include manual verification notes (commands executed, browsers checked), and attach screenshots or recordings for UI updates.
 
 ## Living Document
 
