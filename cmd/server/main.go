@@ -1,44 +1,56 @@
 package main
 
 import (
+	"html/template"
 	"log"
 	"net/http"
+
+	"github.com/rjnemo/auth/web"
 )
 
-var loggedIn = false
+var (
+	loggedIn  = false
+	templates = template.Must(template.ParseFS(web.Templates, "templates/index.html", "templates/in.html", "templates/unauthorized.html"))
+)
 
 func main() {
 	mux := http.NewServeMux()
 
-	mux.HandleFunc("GET /", func(w http.ResponseWriter, r *http.Request) {
-		http.ServeFile(w, r, "index.html")
-	})
-
-	mux.HandleFunc("GET /in", func(w http.ResponseWriter, r *http.Request) {
-		if loggedIn {
-			http.ServeFile(w, r, "in.html")
-		} else {
-			w.Header().Add("Content-Type", "text/html")
-			w.WriteHeader(http.StatusUnauthorized)
-			w.Write([]byte(`
-				<head>
-					<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.min.css" />
-				</head>
-				<body>
-					<main class="container">
-						<h1>Unauthorized</h1> <a href='/' role='button'> Back to safety </a>
-					</main>
-				</body>
-				`))
-		}
-	})
-
-	mux.HandleFunc("POST /login", func(w http.ResponseWriter, r *http.Request) {
-		log.Println("Login request received")
-		loggedIn = true
-		http.Redirect(w, r, "/in", http.StatusSeeOther)
-	})
+	mux.HandleFunc("GET /", handleIndex)
+	mux.HandleFunc("GET /in", handleIn)
+	mux.HandleFunc("POST /login", handleLogin)
 
 	log.Println("Starting server on http://localhost:8000")
-	http.ListenAndServe(":8000", mux)
+	if err := http.ListenAndServe(":8000", mux); err != nil {
+		log.Fatalf("listen: %v", err)
+	}
+}
+
+func handleIndex(w http.ResponseWriter, r *http.Request) {
+	err := templates.ExecuteTemplate(w, "index.html", nil)
+	if err != nil {
+		http.Error(w, "template render failed", http.StatusInternalServerError)
+	}
+}
+
+func handleIn(w http.ResponseWriter, r *http.Request) {
+	if !loggedIn {
+		w.WriteHeader(http.StatusUnauthorized)
+		err := templates.ExecuteTemplate(w, "unauthorized.html", nil)
+		if err != nil {
+			http.Error(w, "template render failed", http.StatusInternalServerError)
+		}
+		return
+	}
+
+	err := templates.ExecuteTemplate(w, "in.html", nil)
+	if err != nil {
+		http.Error(w, "template render failed", http.StatusInternalServerError)
+	}
+}
+
+func handleLogin(w http.ResponseWriter, r *http.Request) {
+	log.Println("Login request received")
+	loggedIn = true
+	http.Redirect(w, r, "/in", http.StatusSeeOther)
 }
