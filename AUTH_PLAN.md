@@ -16,6 +16,8 @@
 - Implement password hashing with per-user random salts (`crypto/rand`, `sha256`) and base64 encoding for storage.
 - Define a user repository interface seeded with an in-memory implementation until persistence is added.
 - Generate CSRF tokens tied to session state and validate them for every mutating request.
+- Externalize session secrets via configuration so environments use predictable/rotatable keys.
+- Add integration tests covering login/logout flows and CSRF protections to prevent regressions.
 
 ## Templates & Frontend
 
