@@ -20,9 +20,9 @@ const (
 
 // Server holds HTTP dependencies for the application.
 type Server struct {
-	templates *template.Template
-	users     auth.UserStore
-	sessions  *SessionManager
+	templates   *template.Template
+	authService *auth.Service
+	sessions    *SessionManager
 }
 
 // New constructs a Server with parsed templates and default state.
@@ -37,15 +37,15 @@ func New() (*Server, error) {
 		return nil, fmt.Errorf("parse templates: %w", err)
 	}
 
-	users := auth.NewMemoryStore()
-	if err := seedUser(users); err != nil {
+	store := auth.NewMemoryStore()
+	if err := seedUser(store); err != nil {
 		return nil, fmt.Errorf("seed user: %w", err)
 	}
 
 	return &Server{
-		templates: tmpl,
-		users:     users,
-		sessions:  NewSessionManager(),
+		templates:   tmpl,
+		authService: auth.NewService(store),
+		sessions:    NewSessionManager(),
 	}, nil
 }
 
@@ -62,10 +62,12 @@ func seedUser(store auth.UserStore) error {
 		return err
 	}
 
+	email := auth.MustUserEmail(seedEmail)
+
 	ctx := context.Background()
 	return store.Create(ctx, auth.User{
 		ID:           "seed-user",
-		Email:        seedEmail,
+		Email:        email,
 		PasswordSalt: salt,
 		PasswordHash: hash,
 		CreatedAt:    time.Now().UTC(),

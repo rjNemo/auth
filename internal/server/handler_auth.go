@@ -1,10 +1,11 @@
 package server
 
 import (
+	"errors"
+	"log"
 	"net/http"
 
 	"github.com/rjnemo/auth/internal/auth"
-	"github.com/rjnemo/auth/internal/identity"
 )
 
 func (s *Server) loginHandler() http.HandlerFunc {
@@ -14,28 +15,30 @@ func (s *Server) loginHandler() http.HandlerFunc {
 			return
 		}
 
-		email := identity.NormalizeEmail(r.FormValue("email"))
+		emailInput := r.FormValue("email")
 		password := r.FormValue("password")
 
-		if email == "" || password == "" {
-			w.WriteHeader(http.StatusBadRequest)
-			s.render(w, "index.html", newIndexData(email, "Email and password are required."))
-			return
-		}
-
-		account, err := s.users.FindByEmail(r.Context(), email)
+		email, err := auth.NewUserEmail(emailInput)
 		if err != nil {
-			s.renderLoginFailure(w, email)
+			w.WriteHeader(http.StatusBadRequest)
+			s.render(w, "index.html", newIndexData("", "Email and password are required."))
 			return
 		}
 
-		if !auth.VerifyPassword(password, account.PasswordSalt, account.PasswordHash) {
+		account, err := s.authService.Authenticate(r.Context(), email, password)
+		switch {
+		case err == nil:
+			s.sessions.SetAuthenticated(account.Email.String())
+			http.Redirect(w, r, "/in", http.StatusSeeOther)
+		case errors.Is(err, auth.ErrInvalidInput):
+			w.WriteHeader(http.StatusBadRequest)
+			s.render(w, "index.html", newIndexData(email.String(), "Email and password are required."))
+		case errors.Is(err, auth.ErrInvalidCredentials):
 			s.renderLoginFailure(w, email)
-			return
+		default:
+			log.Printf("auth: authenticate failed: %v", err)
+			http.Error(w, "unexpected error", http.StatusInternalServerError)
 		}
-
-		s.sessions.SetAuthenticated(account.Email)
-		http.Redirect(w, r, "/in", http.StatusSeeOther)
 	}
 }
 
@@ -46,7 +49,7 @@ func (s *Server) logoutHandler() http.HandlerFunc {
 	}
 }
 
-func (s *Server) renderLoginFailure(w http.ResponseWriter, email string) {
+func (s *Server) renderLoginFailure(w http.ResponseWriter, email auth.UserEmail) {
 	w.WriteHeader(http.StatusUnauthorized)
-	s.render(w, "index.html", newIndexData(email, "Invalid credentials."))
+	s.render(w, "index.html", newIndexData(email.String(), "Invalid credentials."))
 }

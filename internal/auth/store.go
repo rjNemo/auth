@@ -4,16 +4,17 @@ import (
 	"context"
 	"errors"
 	"sync"
-
-	"github.com/rjnemo/auth/internal/identity"
 )
 
 // ErrUserNotFound signals no user exists for the provided lookup criteria.
-var ErrUserNotFound = errors.New("auth: user not found")
+var (
+	ErrUserNotFound  = errors.New("auth: user not found")
+	ErrEmailRequired = errors.New("auth: email required")
+)
 
 // UserStore defines persistence expectations for user lookups.
 type UserStore interface {
-	FindByEmail(ctx context.Context, email string) (*User, error)
+	FindByEmail(ctx context.Context, email UserEmail) (*User, error)
 	Create(ctx context.Context, user User) error
 }
 
@@ -29,16 +30,15 @@ func NewMemoryStore() *MemoryStore {
 }
 
 // FindByEmail returns a copy of the stored user.
-func (s *MemoryStore) FindByEmail(_ context.Context, email string) (*User, error) {
-	key := identity.NormalizeEmail(email)
-	if key == "" {
+func (s *MemoryStore) FindByEmail(_ context.Context, email UserEmail) (*User, error) {
+	if email.IsZero() {
 		return nil, ErrUserNotFound
 	}
 
 	s.mu.RLock()
 	defer s.mu.RUnlock()
 
-	user, ok := s.users[key]
+	user, ok := s.users[email.String()]
 	if !ok {
 		return nil, ErrUserNotFound
 	}
@@ -48,13 +48,11 @@ func (s *MemoryStore) FindByEmail(_ context.Context, email string) (*User, error
 }
 
 // Create inserts or replaces the stored user by email.
-func (s *MemoryStore) Create(_ context.Context, user User) error {
-	key := identity.NormalizeEmail(user.Email)
-	if key == "" {
-		return errors.New("auth: email required")
-	}
 
-	user.Email = key
+func (s *MemoryStore) Create(_ context.Context, user User) error {
+	if user.Email.IsZero() {
+		return ErrEmailRequired
+	}
 
 	s.mu.Lock()
 	defer s.mu.Unlock()
@@ -63,6 +61,6 @@ func (s *MemoryStore) Create(_ context.Context, user User) error {
 		s.users = make(map[string]User)
 	}
 
-	s.users[key] = user
+	s.users[user.Email.String()] = user
 	return nil
 }
