@@ -32,6 +32,7 @@ type Server struct {
 func New(cfg config.Config, logger *slog.Logger) (*Server, error) {
 	tmpl, err := template.ParseFS(
 		web.Templates,
+		"templates/auth_base.html",
 		"templates/login.html",
 		"templates/dashboard.html",
 		"templates/signup.html",

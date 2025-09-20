@@ -1,51 +1,104 @@
-<!doctype html>
-<html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Create Account</title>
-    <link
-      rel="stylesheet"
-      href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.min.css"
-    />
-  </head>
-  <body>
-    <main class="container">
-      <h1>Sign up</h1>
-      <p>Provide your email and a strong password to create an account.</p>
-      {{if .Error}}
-      <article class="secondary">
-        <strong>Unable to sign up:</strong> {{.Error}}
-      </article>
-      {{end}}
-      <form method="post" action="/signup">
-        <input type="hidden" name="_csrf" value="{{.CSRFToken}}" />
-        <label for="email">Email</label>
-        <input
-          type="email"
-          id="email"
-          name="email"
-          placeholder="Enter your email"
-          required
-          autofocus
-          value="{{.Email}}"
-        />
-        <label for="password">Password</label>
-        <input
-          type="password"
-          id="password"
-          name="password"
-          placeholder="Choose a password"
-          required
-          pattern="(?=.*[A-Z])(?=.*\d).{8,}"
-          title="At least 8 characters including one uppercase letter and one number"
-        />
-        <button type="submit">Create account</button>
-      </form>
-      <p>
-        Already registered?
-        <a href="/">Return to sign in</a>.
-      </p>
-    </main>
-  </body>
-</html>
+{{define "signup.html"}}
+  {{template "auth_base" .}}
+{{end}}
+
+{{define "signup_content"}}
+  <div class="auth-heading">
+    <h1>Create your account</h1>
+    <p>Join Nucleus UI and start designing with ease.</p>
+  </div>
+  {{if .Info}}
+  <article class="secondary" role="status">
+    <header>Heads-up</header>
+    <p>{{.Info}}</p>
+  </article>
+  {{end}}
+  {{if .Error}}
+  <article class="contrast" role="alert">
+    <header>Unable to sign up</header>
+    <p>{{.Error}}</p>
+  </article>
+  {{end}}
+  <form method="post" action="/signup" class="auth-form">
+    <input type="hidden" name="_csrf" value="{{.CSRFToken}}" />
+    <label for="name">
+      Name
+      <input
+        type="text"
+        id="name"
+        name="name"
+        placeholder="Your name"
+        autocomplete="name"
+      />
+    </label>
+    <label for="email">
+      Email
+      <input
+        type="email"
+        id="email"
+        name="email"
+        placeholder="Enter your email"
+        required
+        autocomplete="email"
+        value="{{.Email}}"
+      />
+    </label>
+    <label for="password">
+      Password
+      <input
+        type="password"
+        id="password"
+        name="password"
+        placeholder="Choose a password"
+        required
+        pattern="(?=.*[A-Z])(?=.*\d).{8,}"
+        title="At least 8 characters including one uppercase letter and one number"
+      />
+    </label>
+    <label for="password_confirm">
+      Confirm password
+      <input
+        type="password"
+        id="password_confirm"
+        name="password_confirm"
+        placeholder="Re-type your password"
+        required
+      />
+    </label>
+    <div class="auth-actions">
+      <button type="submit" class="primary">Create account</button>
+      <div class="auth-divider">or</div>
+      <button type="button" class="secondary outline auth-google">
+        <svg
+          width="18"
+          height="18"
+          viewBox="0 0 24 24"
+          fill="none"
+          xmlns="http://www.w3.org/2000/svg"
+          aria-hidden="true"
+        >
+          <path
+            d="M21.6 12.23c0-.74-.06-1.28-.19-1.84H12v3.34h5.52c-.11.83-.72 2.09-2.08 2.94l-.02.11 3.02 2.34.21.02c1.95-1.8 3.05-4.45 3.05-7.25z"
+            fill="#4285F4"
+          />
+          <path
+            d="M12 22c2.7 0 4.97-.89 6.63-2.41l-3.16-2.45c-.84.56-1.96.95-3.47.95-2.66 0-4.92-1.8-5.72-4.29H3.07v2.52C4.71 19.98 8.08 22 12 22z"
+            fill="#34A853"
+          />
+          <path
+            d="M6.28 13.8a5.95 5.95 0 010-3.6V7.68H3.07a9.96 9.96 0 000 8.64l3.21-2.52z"
+            fill="#FBBC05"
+          />
+          <path
+            d="M12 5.91c1.87 0 3.13.81 3.85 1.49l2.81-2.74C16.96 3.13 14.7 2 12 2 8.08 2 4.71 4.02 3.07 7.32l3.21 2.52C7.08 7.71 9.34 5.91 12 5.91z"
+            fill="#EA4335"
+          />
+        </svg>
+        Sign up with Google
+      </button>
+    </div>
+  </form>
+  <p class="auth-footer">
+    Have an account? <a href="/">Log in</a>
+  </p>
+{{end}}

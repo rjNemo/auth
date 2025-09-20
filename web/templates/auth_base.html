@@ -1,0 +1,272 @@
+{{define "auth_base"}}
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{{if .Title}}{{.Title}}{{else}}Auth Demo{{end}}</title>
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.min.css"
+    />
+    <style>
+      @import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap");
+
+      :root {
+        --pico-font-family: "Inter", "Segoe UI", system-ui, -apple-system, sans-serif;
+        --pico-background-color: #f0f1f6;
+        --pico-color: #1f2033;
+        --pico-muted-color: #6c6f7f;
+        --pico-card-background-color: #ffffff;
+        --pico-border-radius: 1.75rem;
+        --pico-form-element-border-radius: 0.85rem;
+        --pico-primary: #6b3df0;
+        --pico-primary-hover: #5630c7;
+        --pico-primary-focus: rgba(107, 61, 240, 0.25);
+        --pico-primary-inverse: #ffffff;
+        --pico-form-element-active-border-color: #6b3df0;
+        --pico-shadow: 0 25px 45px rgba(15, 23, 42, 0.12);
+      }
+
+      body {
+        background: var(--pico-background-color);
+      }
+
+      .auth-wrapper {
+        min-height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: clamp(1.5rem, 4vw, 3rem);
+      }
+
+      .auth-card {
+        width: min(960px, 100%);
+        background: var(--pico-card-background-color);
+        border-radius: var(--pico-border-radius);
+        box-shadow: var(--pico-shadow);
+        overflow: hidden;
+        display: grid;
+        grid-template-columns: minmax(240px, 1fr) minmax(320px, 1.2fr);
+      }
+
+      .auth-visual {
+        color: var(--pico-primary-inverse);
+        background: linear-gradient(
+            to bottom,
+            rgba(19, 27, 52, 0.35),
+            rgba(19, 27, 52, 0.75)
+          ),
+          url("https://images.unsplash.com/photo-1545239351-1141bd82e8a6?auto=format&fit=crop&w=900&q=80")
+            center/cover no-repeat;
+        padding: clamp(2rem, 4vw, 3rem);
+        display: flex;
+        flex-direction: column;
+        gap: 2rem;
+      }
+
+      .auth-logo {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.75rem;
+        font-weight: 600;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        font-size: 0.9rem;
+      }
+
+      .auth-logo-mark {
+        width: 2.25rem;
+        height: 2.25rem;
+        border-radius: 50%;
+        border: 1px solid rgba(255, 255, 255, 0.45);
+        display: grid;
+        place-items: center;
+      }
+
+      .auth-quote blockquote {
+        margin: 0;
+        font-size: 1.1rem;
+        font-weight: 500;
+        line-height: 1.6;
+      }
+
+      .auth-quote cite {
+        display: block;
+        font-style: normal;
+        font-size: 0.85rem;
+        color: rgba(255, 255, 255, 0.85);
+        margin-top: 0.85rem;
+      }
+
+      .auth-content {
+        padding: clamp(2.25rem, 5vw, 3.25rem);
+        display: flex;
+        flex-direction: column;
+        gap: 1.75rem;
+      }
+
+      .auth-heading h1 {
+        margin-bottom: 0.5rem;
+        font-size: clamp(1.9rem, 3vw, 2.35rem);
+      }
+
+      .auth-heading p {
+        margin: 0;
+        color: var(--pico-muted-color);
+      }
+
+      .auth-note {
+        border-radius: var(--pico-form-element-border-radius);
+        padding: 1rem 1.1rem;
+        background: color-mix(in srgb, var(--pico-primary) 12%, #ffffff);
+        border: 1px dashed color-mix(in srgb, var(--pico-primary) 45%, transparent);
+        font-size: 0.95rem;
+        color: var(--pico-muted-color);
+      }
+
+      .auth-form {
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+      }
+
+      .auth-meta {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 0.75rem;
+        flex-wrap: wrap;
+        font-size: 0.9rem;
+      }
+
+      .auth-toggle {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.45rem;
+        color: var(--pico-muted-color);
+      }
+
+      .auth-toggle input[type="checkbox"] {
+        accent-color: var(--pico-primary);
+      }
+
+      .auth-actions {
+        display: flex;
+        flex-direction: column;
+        gap: 0.75rem;
+      }
+
+      .auth-divider {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        font-size: 0.9rem;
+        color: var(--pico-muted-color);
+      }
+
+      .auth-divider::before,
+      .auth-divider::after {
+        content: "";
+        flex: 1;
+        height: 1px;
+        background: color-mix(in srgb, var(--pico-muted-color) 25%, transparent);
+      }
+
+      .auth-google {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.6rem;
+      }
+
+      .auth-google svg {
+        flex-shrink: 0;
+      }
+
+      .auth-footer {
+        text-align: center;
+        font-size: 0.9rem;
+        color: var(--pico-muted-color);
+      }
+
+      @media (max-width: 960px) {
+        .auth-card {
+          grid-template-columns: 1fr;
+        }
+
+        .auth-visual {
+          min-height: 260px;
+          border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <main class="auth-wrapper">
+      <article class="auth-card">
+        <section class="auth-visual" aria-label="Product testimonial">
+          <header class="auth-logo">
+            <span class="auth-logo-mark">N</span>
+            Nucleus
+          </header>
+          <div class="auth-quote">
+            <blockquote>“Simply all the tools that my team and I need.”</blockquote>
+            <cite>Karen Yue · Director of Digital Marketing Technology</cite>
+          </div>
+        </section>
+        <section class="auth-content">
+          {{if eq .View "login"}}
+            {{template "login_content" .}}
+          {{else if eq .View "signup"}}
+            {{template "signup_content" .}}
+          {{else if eq .View "dashboard"}}
+            {{template "dashboard_content" .}}
+          {{else if eq .View "unauthorized"}}
+            {{template "unauthorized_content" .}}
+          {{else}}
+            {{template "auth_default_content" .}}
+          {{end}}
+        </section>
+      </article>
+    </main>
+  </body>
+</html>
+{{end}}
+
+{{define "auth_default_content"}}
+  <div class="auth-heading">
+    <h1>Authentication</h1>
+    <p>Pick an auth flow to continue.</p>
+  </div>
+{{end}}
+
+{{define "dashboard_content"}}
+  <div class="auth-heading">
+    <h1>Welcome back</h1>
+    <p>You're signed in as <strong>{{.Email}}</strong>.</p>
+  </div>
+  <article>
+    {{if .CreatedAt}}
+    <p>
+      Member since
+      <time datetime="{{.CreatedAtISO}}">{{.CreatedAt}}</time>.
+    </p>
+    {{end}}
+    <p>This dashboard will grow alongside the authentication features.</p>
+  </article>
+  <form method="post" action="/logout" class="auth-actions">
+    <input type="hidden" name="_csrf" value="{{.CSRFToken}}" />
+    <button type="submit" class="secondary">Sign out</button>
+  </form>
+{{end}}
+
+{{define "unauthorized_content"}}
+  <div class="auth-heading">
+    <h1>Access denied</h1>
+    <p>{{if .Error}}{{.Error}}{{else}}You do not have permission to view that page.{{end}}</p>
+  </div>
+  <p class="auth-footer">
+    <a href="/" role="button">Back to safety</a>
+  </p>
+{{end}}

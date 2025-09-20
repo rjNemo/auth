@@ -1,35 +1,3 @@
-<!doctype html>
-<html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Dashboard</title>
-    <link
-      rel="stylesheet"
-      href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.min.css"
-    />
-  </head>
-  <body>
-    <main class="container">
-      <h1>Welcome</h1>
-      <article>
-        <p>You are signed in as <strong>{{.Email}}</strong>.</p>
-        {{if .CreatedAt}}
-        <p>
-          Member since
-          <time datetime="{{.CreatedAtISO}}">{{.CreatedAt}}</time>.
-        </p>
-        {{end}}
-        <p>
-          This placeholder dashboard will evolve as we flesh out the auth flow.
-        </p>
-        <footer>
-          <form method="post" action="/logout">
-            <input type="hidden" name="_csrf" value="{{.CSRFToken}}" />
-            <button type="submit" class="secondary">Sign out</button>
-          </form>
-        </footer>
-      </article>
-    </main>
-  </body>
-</html>
+{{define "dashboard.html"}}
+  {{template "auth_base" .}}
+{{end}}
