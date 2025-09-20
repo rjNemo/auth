@@ -1,13 +1,16 @@
 package server
 
 import (
-	"log"
+	"log/slog"
 	"net/http"
 )
 
 func (s *Server) render(w http.ResponseWriter, name string, data any) {
 	if err := s.templates.ExecuteTemplate(w, name, data); err != nil {
-		log.Printf("render %s: %v", name, err)
+		s.logger.With(
+			slog.String("component", "templates"),
+			slog.String("template", name),
+		).Error("render failed", slog.Any("error", err))
 		http.Error(w, "template render failed", http.StatusInternalServerError)
 	}
 }

@@ -1,7 +1,7 @@
 package server
 
 import (
-	"log"
+	"log/slog"
 	"net/http"
 	"time"
 
@@ -12,6 +12,7 @@ const dashboardTimeDisplayLayout = "02 Jan 2006 15:04 MST"
 
 func (s *Server) dashboardPageHandler() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
+		logger := s.logger.With(slog.String("component", "dashboard"))
 		state := sessionFromContext(r.Context())
 
 		if !state.Authenticated {
@@ -22,14 +23,14 @@ func (s *Server) dashboardPageHandler() http.HandlerFunc {
 
 		email, err := auth.NewUserEmail(state.Email)
 		if err != nil {
-			log.Printf("dashboard: invalid session email: %v", err)
+			logger.Warn("invalid session email", slog.Any("error", err))
 			http.Error(w, "session invalid", http.StatusUnauthorized)
 			return
 		}
 
 		account, err := s.authService.LookupByEmail(r.Context(), email)
 		if err != nil {
-			log.Printf("dashboard: lookup failed: %v", err)
+			logger.Error("lookup failed", slog.Any("error", err))
 			http.Error(w, "unable to load account", http.StatusInternalServerError)
 			return
 		}

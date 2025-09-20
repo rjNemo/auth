@@ -2,27 +2,34 @@ package main
 
 import (
 	"fmt"
-	"log"
+	"log/slog"
 	"net/http"
+	"os"
 
+	"github.com/rjnemo/auth/internal/logging"
 	"github.com/rjnemo/auth/internal/server"
+	"gorm.io/gorm/logger"
 )
 
+const listenAddr = ":8000"
+
 func main() {
-	if err := run(); err != nil {
-		log.Fatalf("run: %v", err)
+	if err := run(logger); err != nil {
+		logger.Error("server exited", slog.Any("error", err))
+		os.Exit(1)
 	}
 }
 
 func run() error {
-	srv, err := server.New()
+	logger := logging.New(os.Stdout, logging.ModeText, &slog.HandlerOptions{AddSource: true})
+	srv, err := server.New(logger)
 	if err != nil {
-		return fmt.Errorf("initialise server: %v", err)
+		return fmt.Errorf("initialise server: %w", err)
 	}
 
-	log.Println("Starting server on http://localhost:8000")
-	if err := http.ListenAndServe(":8000", srv.Router()); err != nil {
-		return fmt.Errorf("listen: %v", err)
+	logger.Info("starting server", slog.String("addr", listenAddr))
+	if err := http.ListenAndServe(listenAddr, srv.Router()); err != nil {
+		return fmt.Errorf("listen: %w", err)
 	}
 
 	return nil

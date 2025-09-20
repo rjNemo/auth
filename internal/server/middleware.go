@@ -3,7 +3,7 @@ package server
 import (
 	"context"
 	"crypto/subtle"
-	"log"
+	"log/slog"
 	"net/http"
 )
 
@@ -11,17 +11,19 @@ type sessionContextKey struct{}
 
 func (s *Server) sessionMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		logger := s.logger.With(slog.String("component", "session"))
+
 		state := s.sessions.Load(r)
 		updated, err := ensureCSRFToken(state)
 		if err != nil {
-			log.Printf("session: csrf token generation failed: %v", err)
+			logger.Error("csrf token generation failed", slog.Any("error", err))
 			http.Error(w, "session error", http.StatusInternalServerError)
 			return
 		}
 		state = updated
 
 		if err := s.sessions.Save(w, state); err != nil {
-			log.Printf("session: save failed: %v", err)
+			logger.Warn("session save failed", slog.Any("error", err))
 		}
 
 		ctx := withSession(r.Context(), state)

@@ -2,7 +2,7 @@ package server
 
 import (
 	"errors"
-	"log"
+	"log/slog"
 	"net/http"
 
 	"github.com/rjnemo/auth/internal/service/auth"
@@ -30,6 +30,7 @@ func (s *Server) signupPageHandler() http.HandlerFunc {
 
 func (s *Server) signupHandler() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
+		logger := s.logger.With(slog.String("component", "signup"))
 		state := sessionFromContext(r.Context())
 
 		if err := r.ParseForm(); err != nil {
@@ -53,7 +54,7 @@ func (s *Server) signupHandler() http.HandlerFunc {
 			state.Authenticated = true
 			state.Email = account.Email.String()
 			if err := s.sessions.Save(w, state); err != nil {
-				log.Printf("session: save failed: %v", err)
+				logger.Warn("session save failed", slog.Any("error", err))
 			}
 			http.Redirect(w, r, "/dashboard", http.StatusSeeOther)
 		case errors.Is(err, auth.ErrWeakPassword):
@@ -66,7 +67,7 @@ func (s *Server) signupHandler() http.HandlerFunc {
 			w.WriteHeader(http.StatusConflict)
 			s.render(w, "signup.html", newSignupData(email.String(), duplicateEmailMsg, state.CSRFToken))
 		default:
-			log.Printf("auth: register failed: %v", err)
+			logger.Error("register failed", slog.Any("error", err))
 			http.Error(w, "unexpected error", http.StatusInternalServerError)
 		}
 	}

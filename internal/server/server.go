@@ -5,8 +5,11 @@ import (
 	"crypto/rand"
 	"fmt"
 	"html/template"
+	"io"
+	"log/slog"
 	"time"
 
+	"github.com/rjnemo/auth/internal/logging"
 	"github.com/rjnemo/auth/internal/service/auth"
 	"github.com/rjnemo/auth/web"
 )
@@ -21,10 +24,11 @@ type Server struct {
 	templates   *template.Template
 	authService *auth.Service
 	sessions    *SessionStore
+	logger      *slog.Logger
 }
 
 // New constructs a Server with parsed templates and default state.
-func New() (*Server, error) {
+func New(logger *slog.Logger) (*Server, error) {
 	tmpl, err := template.ParseFS(
 		web.Templates,
 		"templates/login.html",
@@ -51,10 +55,16 @@ func New() (*Server, error) {
 		return nil, fmt.Errorf("session store: %w", err)
 	}
 
+	if logger == nil {
+		logger = logging.New(io.Discard, logging.ModeText, nil)
+	}
+	logger = logger.With(slog.String("service", "http"))
+
 	return &Server{
 		templates:   tmpl,
 		authService: auth.NewService(store),
 		sessions:    sessionStore,
+		logger:      logger,
 	}, nil
 }
 

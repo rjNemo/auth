@@ -37,3 +37,6 @@
 - Use `net/http/httptest` to verify happy-path login, signup, logout, invalid credential handling, CSRF failures, and session persistence.
 - Run `go test -cover ./...` to ensure the new logic maintains regression coverage.
 - Flesh out dedicated service tests for lookup flows and extend dashboard coverage once integration scaffolding is available.
+- Add structured logging: text encoder for development, JSON for production deployments.
+- Consolidate templates with a base layout to remove duplication across pages.
+- Introduce configuration loading that sources environment variables, validates them, and exposes typed settings at startup.

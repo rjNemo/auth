@@ -2,7 +2,7 @@ package server
 
 import (
 	"errors"
-	"log"
+	"log/slog"
 	"net/http"
 
 	"github.com/rjnemo/auth/internal/service/auth"
@@ -21,6 +21,7 @@ func (s *Server) loginPageHandler() http.HandlerFunc {
 
 func (s *Server) loginHandler() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
+		logger := s.logger.With(slog.String("component", "login"))
 		state := sessionFromContext(r.Context())
 
 		if err := r.ParseForm(); err != nil {
@@ -44,7 +45,7 @@ func (s *Server) loginHandler() http.HandlerFunc {
 			state.Authenticated = true
 			state.Email = account.Email.String()
 			if err := s.sessions.Save(w, state); err != nil {
-				log.Printf("session: save failed: %v", err)
+				logger.Warn("session save failed", slog.Any("error", err))
 			}
 			http.Redirect(w, r, "/dashboard", http.StatusSeeOther)
 
@@ -57,7 +58,7 @@ func (s *Server) loginHandler() http.HandlerFunc {
 		case errors.Is(err, auth.ErrInvalidCredentials):
 			s.renderLoginFailure(w, email, state.CSRFToken)
 		default:
-			log.Printf("auth: authenticate failed: %v", err)
+			logger.Error("authenticate failed", slog.Any("error", err))
 			http.Error(w, "unexpected error", http.StatusInternalServerError)
 		}
 	}
