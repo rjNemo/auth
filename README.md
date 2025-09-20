@@ -33,12 +33,15 @@ templates/assets for single-binary deployment.
 
 Settings are sourced from environment variables (see [.env](./.env)).
 
-| Variable              | Required | Default       | Description                                           |
-| --------------------- | -------- | ------------- | ----------------------------------------------------- |
-| `AUTH_SESSION_SECRET` | Yes      | —             | Base64-encoded secret used to sign session cookies.   |
-| `AUTH_LISTEN_ADDR`    | No       | `:8000`       | Address the HTTP server binds to.                     |
-| `AUTH_ENV`            | No       | `development` | Environment label, controls logger source annotation. |
-| `AUTH_LOG_MODE`       | No       | `text`        | Structured log encoder (`text` or `json`).            |
+| Variable                    | Required    | Default       | Description                                                                   |
+| --------------------------- | ----------- | ------------- | ----------------------------------------------------------------------------- |
+| `AUTH_SESSION_SECRET`       | Yes         | —             | Base64-encoded secret used to sign session cookies.                           |
+| `AUTH_LISTEN_ADDR`          | No          | `:8000`       | Address the HTTP server binds to.                                             |
+| `AUTH_ENV`                  | No          | `development` | Environment label, controls logger source annotation.                         |
+| `AUTH_LOG_MODE`             | No          | `text`        | Structured log encoder (`text` or `json`).                                    |
+| `AUTH_GOOGLE_CLIENT_ID`     | Conditional | —             | Google OAuth 2.0 client ID; required when enabling Google social login.       |
+| `AUTH_GOOGLE_CLIENT_SECRET` | Conditional | —             | Google OAuth 2.0 client secret matching the ID above.                         |
+| `AUTH_GOOGLE_REDIRECT_URL`  | Conditional | —             | Registered redirect URL (e.g. `http://localhost:8000/login/google/callback`). |
 
 ## Project Layout
 
