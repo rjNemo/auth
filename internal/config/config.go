@@ -15,6 +15,7 @@ const (
 	envLogMode            = "AUTH_LOG_MODE"
 	envEnvironment        = "AUTH_ENV"
 	envSessionSecret      = "AUTH_SESSION_SECRET"
+	envDatabaseURL        = "AUTH_DATABASE_URL"
 	envGoogleClientID     = "AUTH_GOOGLE_CLIENT_ID"
 	envGoogleClientSecret = "AUTH_GOOGLE_CLIENT_SECRET"
 	envGoogleRedirectURL  = "AUTH_GOOGLE_REDIRECT_URL"
@@ -29,6 +30,7 @@ type Config struct {
 	LogMode       logging.Mode
 	Environment   string
 	SessionSecret []byte
+	DatabaseURL   string
 	GoogleOAuth   GoogleOAuthConfig
 }
 
@@ -63,6 +65,11 @@ func New() (*Config, error) {
 		return nil, fmt.Errorf("invalid %s: %w", envSessionSecret, err)
 	}
 
+	databaseURL := strings.TrimSpace(os.Getenv(envDatabaseURL))
+	if databaseURL == "" {
+		return nil, fmt.Errorf("missing required configuration: set %s", envDatabaseURL)
+	}
+
 	googleOAuth := GoogleOAuthConfig{
 		ClientID:     strings.TrimSpace(os.Getenv(envGoogleClientID)),
 		ClientSecret: strings.TrimSpace(os.Getenv(envGoogleClientSecret)),
@@ -78,6 +85,7 @@ func New() (*Config, error) {
 		LogMode:       logMode,
 		Environment:   environment,
 		SessionSecret: secret,
+		DatabaseURL:   databaseURL,
 		GoogleOAuth:   googleOAuth,
 	}
 

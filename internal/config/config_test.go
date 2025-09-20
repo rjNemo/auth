@@ -9,6 +9,7 @@ import (
 
 func TestNewDefaults(t *testing.T) {
 	t.Setenv("AUTH_SESSION_SECRET", base64.StdEncoding.EncodeToString(bytesOfLength(32)))
+	t.Setenv("AUTH_DATABASE_URL", "postgres://localhost/auth_test?sslmode=disable")
 	cfg, err := New()
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
@@ -30,6 +31,7 @@ func TestNewDefaults(t *testing.T) {
 func TestNewOverrides(t *testing.T) {
 	secret := base64.StdEncoding.EncodeToString(bytesOfLength(40))
 	t.Setenv("AUTH_SESSION_SECRET", secret)
+	t.Setenv("AUTH_DATABASE_URL", "postgres://localhost/auth_test?sslmode=disable")
 	t.Setenv("AUTH_LISTEN_ADDR", "127.0.0.1:9000")
 	t.Setenv("AUTH_LOG_MODE", "json")
 	t.Setenv("AUTH_ENV", "production")
@@ -54,6 +56,7 @@ func TestNewOverrides(t *testing.T) {
 
 func TestNewMissingSecret(t *testing.T) {
 	t.Setenv("AUTH_SESSION_SECRET", "")
+	t.Setenv("AUTH_DATABASE_URL", "postgres://localhost/auth_test?sslmode=disable")
 	if _, err := New(); err == nil {
 		t.Fatalf("expected error for missing secret")
 	}
@@ -61,6 +64,7 @@ func TestNewMissingSecret(t *testing.T) {
 
 func TestNewInvalidSecret(t *testing.T) {
 	t.Setenv("AUTH_SESSION_SECRET", "not-base64")
+	t.Setenv("AUTH_DATABASE_URL", "postgres://localhost/auth_test?sslmode=disable")
 	if _, err := New(); err == nil {
 		t.Fatalf("expected error for invalid secret")
 	}
@@ -68,6 +72,7 @@ func TestNewInvalidSecret(t *testing.T) {
 
 func TestNewShortSecretAccepted(t *testing.T) {
 	t.Setenv("AUTH_SESSION_SECRET", base64.StdEncoding.EncodeToString(bytesOfLength(16)))
+	t.Setenv("AUTH_DATABASE_URL", "postgres://localhost/auth_test?sslmode=disable")
 	if _, err := New(); err != nil {
 		t.Fatalf("expected short secret to pass config load, got %v", err)
 	}
@@ -77,6 +82,7 @@ func TestNewGoogleOAuthPartialConfiguration(t *testing.T) {
 	t.Setenv("AUTH_SESSION_SECRET", base64.StdEncoding.EncodeToString(bytesOfLength(32)))
 	t.Setenv("AUTH_GOOGLE_CLIENT_ID", "client")
 	t.Setenv("AUTH_GOOGLE_CLIENT_SECRET", "")
+	t.Setenv("AUTH_DATABASE_URL", "postgres://localhost/auth_test?sslmode=disable")
 	if _, err := New(); err == nil {
 		t.Fatalf("expected error for partial google oauth config")
 	}
@@ -87,6 +93,7 @@ func TestNewGoogleOAuthConfigured(t *testing.T) {
 	t.Setenv("AUTH_GOOGLE_CLIENT_ID", "client")
 	t.Setenv("AUTH_GOOGLE_CLIENT_SECRET", "secret")
 	t.Setenv("AUTH_GOOGLE_REDIRECT_URL", "http://localhost:8000/login/google/callback")
+	t.Setenv("AUTH_DATABASE_URL", "postgres://localhost/auth_test?sslmode=disable")
 
 	cfg, err := New()
 	if err != nil {

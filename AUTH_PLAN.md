@@ -40,3 +40,45 @@
 - Add structured logging: text encoder for development, JSON for production deployments.
 - Consolidate templates with a base layout to remove duplication across pages.
 - Introduce configuration loading that sources environment variables, validates them, and exposes typed settings at startup.
+
+## Database Roadmap
+
+- **users**
+  - `id uuid PRIMARY KEY DEFAULT gen_random_uuid()`
+  - `email citext NOT NULL UNIQUE`
+  - `display_name text`
+  - `created_at timestamptz NOT NULL DEFAULT now()`
+  - `updated_at timestamptz NOT NULL DEFAULT now()`
+- **user_passwords**
+  - `user_id uuid PRIMARY KEY REFERENCES users(id) ON DELETE CASCADE`
+  - `password_hash bytea NOT NULL`
+  - `password_salt bytea NOT NULL`
+  - `algorithm text NOT NULL`
+  - `created_at timestamptz NOT NULL DEFAULT now()`
+  - `updated_at timestamptz NOT NULL DEFAULT now()`
+- **user_oauth_accounts**
+  - `id uuid PRIMARY KEY DEFAULT gen_random_uuid()`
+  - `user_id uuid NOT NULL REFERENCES users(id) ON DELETE CASCADE`
+  - `provider text NOT NULL`
+  - `subject text NOT NULL`
+  - `email text`
+  - `email_verified boolean NOT NULL DEFAULT false`
+  - `profile jsonb`
+  - `created_at timestamptz NOT NULL DEFAULT now()`
+  - `updated_at timestamptz NOT NULL DEFAULT now()`
+  - Indexes: `UNIQUE(provider, subject)` and `INDEX(user_id)`
+- **login_events**
+  - `id uuid PRIMARY KEY DEFAULT gen_random_uuid()`
+  - `user_id uuid REFERENCES users(id)`
+  - `provider text`
+  - `success boolean NOT NULL`
+  - `ip inet`
+  - `user_agent text`
+  - `created_at timestamptz NOT NULL DEFAULT now()`
+  - Indexes: `INDEX(user_id)`, `INDEX(created_at)`
+
+Notes:
+
+- All timestamps default to UTC via `now()`.
+- Authentication data stays normalized; optional password/OAuth records live in dedicated tables for clarity and extension.
+- `login_events` remains a standard logged table to preserve audit history; revisit storage strategy if write volume demands partitioning later.

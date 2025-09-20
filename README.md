@@ -19,12 +19,18 @@ templates/assets for single-binary deployment.
    run `set -a; . ./.env; set +a`.
 2. Use the targets in the [Makefile](./Makefile):
 
-   | Target       | Description                                                                             |
-   | ------------ | --------------------------------------------------------------------------------------- |
-   | `make run`   | Start the HTTP server with the current environment.                                     |
-   | `make dev`   | Launch [Air](https://github.com/cosmtrek/air) for live reload (requires `air` on PATH). |
-   | `make build` | Compile to `./bin/auth-server`.                                                         |
-   | `make test`  | Run `go test ./... -cover -count=1`.                                                    |
+   | Target                   | Description                                                                                                                    |
+   | ------------------------ | ------------------------------------------------------------------------------------------------------------------------------ |
+   | `make run`               | Start the HTTP server with the current environment.                                                                            |
+   | `make dev`               | Launch [Air](https://github.com/cosmtrek/air) for live reload (requires `air` on PATH).                                        |
+   | `make build`             | Compile to `./bin/auth-server`.                                                                                                |
+   | `make test`              | Run `go test ./... -cover -count=1`.                                                                                           |
+   | `make migrate-status`    | Show Goose migration status for the configured database.                                                                       |
+   | `make migrate-up`        | Apply pending migrations to the database at `AUTH_DATABASE_URL` (defaults to `postgres://localhost/auth_dev?sslmode=disable`). |
+   | `make migrate-down`      | Roll back the most recent migration in the target database.                                                                    |
+   | `make migrate-reset`     | Reset the schema by rolling back all migrations, then re-applying them.                                                        |
+   | `make migrate-new name=` | Create a timestamped SQL migration (e.g. `make migrate-new name=add_users`).                                                   |
+   | `make sqlc-generate`     | Regenerate data-access code from SQL queries via `sqlc`.                                                                       |
 
 3. Visit the login page (default <http://localhost:8000>) and authenticate with
    the demo credentials displayed on screen.
@@ -33,15 +39,24 @@ templates/assets for single-binary deployment.
 
 Settings are sourced from environment variables (see [.env](./.env)).
 
-| Variable                    | Required    | Default       | Description                                                                   |
-| --------------------------- | ----------- | ------------- | ----------------------------------------------------------------------------- |
-| `AUTH_SESSION_SECRET`       | Yes         | —             | Base64-encoded secret used to sign session cookies.                           |
-| `AUTH_LISTEN_ADDR`          | No          | `:8000`       | Address the HTTP server binds to.                                             |
-| `AUTH_ENV`                  | No          | `development` | Environment label, controls logger source annotation.                         |
-| `AUTH_LOG_MODE`             | No          | `text`        | Structured log encoder (`text` or `json`).                                    |
-| `AUTH_GOOGLE_CLIENT_ID`     | Conditional | —             | Google OAuth 2.0 client ID; required when enabling Google social login.       |
-| `AUTH_GOOGLE_CLIENT_SECRET` | Conditional | —             | Google OAuth 2.0 client secret matching the ID above.                         |
-| `AUTH_GOOGLE_REDIRECT_URL`  | Conditional | —             | Registered redirect URL (e.g. `http://localhost:8000/login/google/callback`). |
+| Variable                    | Required    | Default       | Description                                                                          |
+| --------------------------- | ----------- | ------------- | ------------------------------------------------------------------------------------ |
+| `AUTH_SESSION_SECRET`       | Yes         | —             | Base64-encoded secret used to sign session cookies.                                  |
+| `AUTH_DATABASE_URL`         | Yes         | —             | PostgreSQL connection string (e.g. `postgres://localhost/auth_dev?sslmode=disable`). |
+| `AUTH_LISTEN_ADDR`          | No          | `:8000`       | Address the HTTP server binds to.                                                    |
+| `AUTH_ENV`                  | No          | `development` | Environment label, controls logger source annotation.                                |
+| `AUTH_LOG_MODE`             | No          | `text`        | Structured log encoder (`text` or `json`).                                           |
+| `AUTH_GOOGLE_CLIENT_ID`     | Conditional | —             | Google OAuth 2.0 client ID; required when enabling Google social login.              |
+| `AUTH_GOOGLE_CLIENT_SECRET` | Conditional | —             | Google OAuth 2.0 client secret matching the ID above.                                |
+| `AUTH_GOOGLE_REDIRECT_URL`  | Conditional | —             | Registered redirect URL (e.g. `http://localhost:8000/login/google/callback`).        |
+
+## Database Tooling
+
+Migrations live in [`internal/driver/db/migrations`](./internal/driver/db/migrations) and are managed with
+[Goose](https://github.com/pressly/goose). Point `AUTH_DATABASE_URL` at your PostgreSQL instance—`postgres://localhost/auth_dev?sslmode=disable`
+is a good local default—then use the Makefile helpers (`make migrate-up`, `make migrate-status`, etc.) to evolve the schema. The same DSN drives
+[`sqlc`](https://sqlc.dev/) generation with `make sqlc-generate`, which reads [`internal/driver/db/sqlc.yaml`](./internal/driver/db/sqlc.yaml) and
+emits typed data-access code alongside the queries.
 
 ## Project Layout
 

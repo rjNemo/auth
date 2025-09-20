@@ -1,0 +1,6 @@
+[goose]
+dir = "migrations"
+
+[goose.envs.local]
+driver = "postgres"
+open = "postgres://localhost/auth_dev?sslmode=disable"

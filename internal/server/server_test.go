@@ -21,6 +21,7 @@ func newTestServer(t *testing.T) *Server {
 		LogMode:       logging.ModeText,
 		Environment:   "test",
 		SessionSecret: bytes.Repeat([]byte("s"), 32),
+		DatabaseURL:   "postgres://localhost/auth_test?sslmode=disable",
 	}
 
 	logger := logging.New(io.Discard, logging.ModeText, nil)
@@ -45,6 +46,7 @@ func newGoogleTestServer(t *testing.T) *Server {
 			ClientSecret: "secret",
 			RedirectURL:  "http://localhost/login/google/callback",
 		},
+		DatabaseURL: "postgres://localhost/auth_test?sslmode=disable",
 	}
 
 	logger := logging.New(io.Discard, logging.ModeText, nil)
