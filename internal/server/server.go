@@ -27,8 +27,8 @@ type Server struct {
 func New() (*Server, error) {
 	tmpl, err := template.ParseFS(
 		web.Templates,
-		"templates/index.html",
-		"templates/in.html",
+		"templates/login.html",
+		"templates/dashboard.html",
 		"templates/signup.html",
 		"templates/unauthorized.html",
 	)

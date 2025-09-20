@@ -1,5 +1,17 @@
 package server
 
+import (
+	"log"
+	"net/http"
+)
+
+func (s *Server) render(w http.ResponseWriter, name string, data any) {
+	if err := s.templates.ExecuteTemplate(w, name, data); err != nil {
+		log.Printf("render %s: %v", name, err)
+		http.Error(w, "template render failed", http.StatusInternalServerError)
+	}
+}
+
 // PageData contains fields shared by the templates for now.
 type PageData struct {
 	Email        string
@@ -10,7 +22,7 @@ type PageData struct {
 	CreatedAtISO string
 }
 
-func newIndexData(email, errMsg, token string) PageData {
+func newLoginData(email, errMsg, token string) PageData {
 	return PageData{Email: email, Error: errMsg, CSRFToken: token}
 }
 

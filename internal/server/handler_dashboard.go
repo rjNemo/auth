@@ -10,7 +10,7 @@ import (
 
 const dashboardTimeDisplayLayout = "02 Jan 2006 15:04 MST"
 
-func (s *Server) dashboardHandler() http.HandlerFunc {
+func (s *Server) dashboardPageHandler() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		state := sessionFromContext(r.Context())
 
@@ -37,6 +37,6 @@ func (s *Server) dashboardHandler() http.HandlerFunc {
 		createdAtISO := account.CreatedAt.Format(time.RFC3339)
 		createdAtDisplay := account.CreatedAt.Format(dashboardTimeDisplayLayout)
 
-		s.render(w, "in.html", newDashboardData(state.Email, state.CSRFToken, createdAtDisplay, createdAtISO))
+		s.render(w, "dashboard.html", newDashboardData(state.Email, state.CSRFToken, createdAtDisplay, createdAtISO))
 	}
 }

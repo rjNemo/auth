@@ -7,6 +7,8 @@ import (
 	"net/http"
 )
 
+type sessionContextKey struct{}
+
 func (s *Server) sessionMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		state := s.sessions.Load(r)
@@ -56,8 +58,6 @@ func (s *Server) csrfMiddleware(next http.Handler) http.Handler {
 		next.ServeHTTP(w, r)
 	})
 }
-
-type sessionContextKey struct{}
 
 func withSession(ctx context.Context, state SessionState) context.Context {
 	return context.WithValue(ctx, sessionContextKey{}, state)

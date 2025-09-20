@@ -20,7 +20,7 @@ Implement email/password authentication with secure password hashing, CSRF prote
 
 ## Coding Style & Naming Conventions
 
-Trust `gofmt`; avoid manual formatting. Use CamelCase for exported Go identifiers and snake_case for embedded assets. Keep handlers slim, factor shared logic into helpers, and add concise comments only when intent needs clarification. Promote named constants/variables over magic numbers or strings. Template IDs and Alpine component names should reflect their role (e.g., `login_form`).
+Trust `gofmt`; avoid manual formatting. Use CamelCase for exported Go identifiers and snake_case for embedded assets. Keep handlers slim, factor shared logic into helpers, and add concise comments only when intent needs clarification. Promote named constants/variables over magic numbers or strings. Template IDs and Alpine component names should reflect their role (e.g., `login_form`). Name handlers that render full pages with a `PageHandler` suffix and reserve the plain `Handler` suffix for non-page actions.
 
 ## Testing Guidelines
 

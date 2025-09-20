@@ -8,12 +8,12 @@ import (
 )
 
 func (s *Server) registerRoutes(r chi.Router) {
-	r.Get("/", s.indexHandler())
+	r.Get("/", s.loginPageHandler())
 	r.Post("/login", s.loginHandler())
 	r.Post("/logout", s.logoutHandler())
-	r.Get("/signup", s.signupHandler())
-	r.Post("/signup", s.registerHandler())
-	r.Get("/in", s.dashboardHandler())
+	r.Get("/signup", s.signupPageHandler())
+	r.Post("/signup", s.signupHandler())
+	r.Get("/dashboard", s.dashboardPageHandler())
 }
 
 // Router returns the configured HTTP router.
