@@ -5,11 +5,46 @@ import (
 	"crypto/sha256"
 	"crypto/subtle"
 	"encoding/base64"
+	"errors"
 	"fmt"
 	"log"
+	"unicode"
+	"unicode/utf8"
 )
 
 const saltLen = 32
+const passwordMinLength = 8
+
+var ErrWeakPassword = errors.New("auth: password does not meet complexity requirements")
+
+// ValidatePassword ensures a password satisfies baseline complexity rules.
+func ValidatePassword(password string) error {
+	if utf8.RuneCountInString(password) < passwordMinLength {
+		return fmt.Errorf("%w: minimum length %d", ErrWeakPassword, passwordMinLength)
+	}
+
+	var hasUpper, hasDigit bool
+	for _, r := range password {
+		if unicode.IsUpper(r) {
+			hasUpper = true
+		}
+		if unicode.IsDigit(r) {
+			hasDigit = true
+		}
+		if hasUpper && hasDigit {
+			break
+		}
+	}
+
+	if !hasUpper {
+		return fmt.Errorf("%w: missing uppercase letter", ErrWeakPassword)
+	}
+	if !hasDigit {
+		return fmt.Errorf("%w: missing numeric character", ErrWeakPassword)
+	}
+
+	return nil
+}
 
 // HashPassword returns a base64-encoded salt and hash for the provided plaintext.
 func HashPassword(plain string) (salt string, hash string, err error) {

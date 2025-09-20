@@ -48,6 +48,9 @@ func (s *Server) loginHandler() http.HandlerFunc {
 			}
 			http.Redirect(w, r, "/dashboard", http.StatusSeeOther)
 
+		case errors.Is(err, auth.ErrWeakPassword):
+			w.WriteHeader(http.StatusBadRequest)
+			s.render(w, "login.html", newLoginData(email.String(), weakPasswordMsg, state.CSRFToken))
 		case errors.Is(err, auth.ErrInvalidInput):
 			w.WriteHeader(http.StatusBadRequest)
 			s.render(w, "login.html", newLoginData(email.String(), credentialRequiredMsg, state.CSRFToken))

@@ -33,6 +33,9 @@ func (s *Service) Authenticate(ctx context.Context, email UserEmail, password st
 	if email.IsZero() || password == "" {
 		return nil, ErrInvalidInput
 	}
+	if err := ValidatePassword(password); err != nil {
+		return nil, err
+	}
 
 	account, err := s.store.FindByEmail(ctx, email)
 	if err != nil {
@@ -62,6 +65,9 @@ func (s *Service) LookupByEmail(ctx context.Context, email UserEmail) (*User, er
 func (s *Service) Register(ctx context.Context, email UserEmail, password string) (*User, error) {
 	if email.IsZero() || password == "" {
 		return nil, ErrInvalidInput
+	}
+	if err := ValidatePassword(password); err != nil {
+		return nil, err
 	}
 
 	if existing, err := s.store.FindByEmail(ctx, email); err == nil && existing != nil {

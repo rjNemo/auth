@@ -19,7 +19,7 @@
           <strong>Email:</strong> user@example.com<br /><strong>
             Password:
           </strong>
-          password123
+          Password123
         </p>
       </article>
       {{if .Error}}
@@ -46,6 +46,8 @@
           name="password"
           placeholder="Password"
           required
+          pattern="(?=.*[A-Z])(?=.*\d).{8,}"
+          title="At least 8 characters including one uppercase letter and one number"
         />
         <button type="submit">Login</button>
       </form>

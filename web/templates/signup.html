@@ -37,6 +37,8 @@
           name="password"
           placeholder="Choose a password"
           required
+          pattern="(?=.*[A-Z])(?=.*\d).{8,}"
+          title="At least 8 characters including one uppercase letter and one number"
         />
         <button type="submit">Create account</button>
       </form>

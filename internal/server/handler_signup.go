@@ -12,6 +12,7 @@ const (
 	credentialRequiredMsg = "Email and password are required."
 	invalidCredentialsMsg = "Invalid credentials."
 	duplicateEmailMsg     = "An account with that email already exists."
+	weakPasswordMsg       = "Password must be at least 8 characters, include an uppercase letter, and contain a number."
 )
 
 func (s *Server) signupPageHandler() http.HandlerFunc {
@@ -55,6 +56,9 @@ func (s *Server) signupHandler() http.HandlerFunc {
 				log.Printf("session: save failed: %v", err)
 			}
 			http.Redirect(w, r, "/dashboard", http.StatusSeeOther)
+		case errors.Is(err, auth.ErrWeakPassword):
+			w.WriteHeader(http.StatusBadRequest)
+			s.render(w, "signup.html", newSignupData(email.String(), weakPasswordMsg, state.CSRFToken))
 		case errors.Is(err, auth.ErrInvalidInput):
 			w.WriteHeader(http.StatusBadRequest)
 			s.render(w, "signup.html", newSignupData(email.String(), credentialRequiredMsg, state.CSRFToken))

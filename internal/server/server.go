@@ -13,7 +13,7 @@ import (
 
 const (
 	seedEmail    = "user@example.com"
-	seedPassword = "password123"
+	seedPassword = "Password123"
 )
 
 // Server holds HTTP dependencies for the application.
