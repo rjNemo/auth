@@ -36,3 +36,4 @@
 - Cover hashing and CSRF helpers with table-driven unit tests.
 - Use `net/http/httptest` to verify happy-path login, signup, logout, invalid credential handling, CSRF failures, and session persistence.
 - Run `go test -cover ./...` to ensure the new logic maintains regression coverage.
+- Flesh out dedicated service tests for lookup flows and extend dashboard coverage once integration scaffolding is available.

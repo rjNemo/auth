@@ -48,7 +48,6 @@ func (s *MemoryStore) FindByEmail(_ context.Context, email UserEmail) (*User, er
 }
 
 // Create inserts or replaces the stored user by email.
-
 func (s *MemoryStore) Create(_ context.Context, user User) error {
 	if user.Email.IsZero() {
 		return ErrEmailRequired

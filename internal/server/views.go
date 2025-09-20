@@ -4,6 +4,7 @@ package server
 type PageData struct {
 	Email        string
 	Error        string
+	Info         string
 	CSRFToken    string
 	CreatedAt    string
 	CreatedAtISO string
@@ -19,4 +20,8 @@ func newUnauthorizedData(errMsg, token string) PageData {
 
 func newDashboardData(email, token, createdAt, createdAtISO string) PageData {
 	return PageData{Email: email, CSRFToken: token, CreatedAt: createdAt, CreatedAtISO: createdAtISO}
+}
+
+func newSignupData(email, errMsg, token string) PageData {
+	return PageData{Email: email, Error: errMsg, CSRFToken: token}
 }

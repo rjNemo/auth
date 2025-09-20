@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Auth Demo</title>
+    <title>Create Account</title>
     <link
       rel="stylesheet"
       href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.min.css"
@@ -11,23 +11,14 @@
   </head>
   <body>
     <main class="container">
-      <h1>Sign in</h1>
-      <p>Authenticate with the demo credentials below to view the dashboard.</p>
-      <article>
-        <header>Demo account</header>
-        <p>
-          <strong>Email:</strong> user@example.com<br /><strong>
-            Password:
-          </strong>
-          password123
-        </p>
-      </article>
+      <h1>Sign up</h1>
+      <p>Provide your email and a strong password to create an account.</p>
       {{if .Error}}
       <article class="secondary">
-        <strong>Unable to sign in:</strong> {{.Error}}
+        <strong>Unable to sign up:</strong> {{.Error}}
       </article>
       {{end}}
-      <form method="post" action="/login">
+      <form method="post" action="/signup">
         <input type="hidden" name="_csrf" value="{{.CSRFToken}}" />
         <label for="email">Email</label>
         <input
@@ -44,14 +35,14 @@
           type="password"
           id="password"
           name="password"
-          placeholder="Password"
+          placeholder="Choose a password"
           required
         />
-        <button type="submit">Login</button>
+        <button type="submit">Create account</button>
       </form>
       <p>
-        Need an account?
-        <a href="/signup">Create one now</a>.
+        Already registered?
+        <a href="/">Return to sign in</a>.
       </p>
     </main>
   </body>

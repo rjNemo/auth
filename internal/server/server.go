@@ -5,11 +5,7 @@ import (
 	"crypto/rand"
 	"fmt"
 	"html/template"
-	"net/http"
 	"time"
-
-	"github.com/go-chi/chi/v5"
-	"github.com/go-chi/chi/v5/middleware"
 
 	"github.com/rjnemo/auth/internal/auth"
 	"github.com/rjnemo/auth/web"
@@ -33,6 +29,7 @@ func New() (*Server, error) {
 		web.Templates,
 		"templates/index.html",
 		"templates/in.html",
+		"templates/signup.html",
 		"templates/unauthorized.html",
 	)
 	if err != nil {
@@ -59,21 +56,6 @@ func New() (*Server, error) {
 		authService: auth.NewService(store),
 		sessions:    sessionStore,
 	}, nil
-}
-
-// Router returns the configured HTTP router.
-func (s *Server) Router() http.Handler {
-	r := chi.NewRouter()
-	r.Use(
-		middleware.RequestID,
-		middleware.RealIP,
-		middleware.Logger,
-		middleware.Recoverer,
-		s.sessionMiddleware,
-		s.csrfMiddleware,
-	)
-	s.registerRoutes(r)
-	return r
 }
 
 func seedUser(store auth.UserStore) error {
