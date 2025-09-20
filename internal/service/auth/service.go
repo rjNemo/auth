@@ -2,8 +2,6 @@ package auth
 
 import (
 	"context"
-	"crypto/rand"
-	"encoding/base64"
 	"errors"
 	"fmt"
 	"time"
@@ -95,13 +93,4 @@ func (s *Service) Register(ctx context.Context, email UserEmail, password string
 	}
 
 	return &user, nil
-}
-
-// TODO: could be UUID. return a dedicated type
-func generateUserID() (string, error) {
-	buf := make([]byte, userIDByteLength)
-	if _, err := rand.Read(buf); err != nil {
-		return "", err
-	}
-	return base64.RawURLEncoding.EncodeToString(buf), nil
 }

@@ -7,7 +7,7 @@ import (
 	"html/template"
 	"time"
 
-	"github.com/rjnemo/auth/internal/auth"
+	"github.com/rjnemo/auth/internal/service/auth"
 	"github.com/rjnemo/auth/web"
 )
 

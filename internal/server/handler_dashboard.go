@@ -5,7 +5,7 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/rjnemo/auth/internal/auth"
+	"github.com/rjnemo/auth/internal/service/auth"
 )
 
 const dashboardTimeDisplayLayout = "02 Jan 2006 15:04 MST"

@@ -5,7 +5,7 @@ import (
 	"log"
 	"net/http"
 
-	"github.com/rjnemo/auth/internal/auth"
+	"github.com/rjnemo/auth/internal/service/auth"
 )
 
 const (

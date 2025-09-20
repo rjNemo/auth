@@ -1,6 +1,8 @@
 package auth
 
 import (
+	"crypto/rand"
+	"encoding/base64"
 	"errors"
 	"strings"
 	"time"
@@ -44,4 +46,13 @@ func (e UserEmail) String() string {
 // IsZero reports whether the email is unset.
 func (e UserEmail) IsZero() bool {
 	return e == ""
+}
+
+// TODO: could be UUID. return a dedicated type
+func generateUserID() (string, error) {
+	buf := make([]byte, userIDByteLength)
+	if _, err := rand.Read(buf); err != nil {
+		return "", err
+	}
+	return base64.RawURLEncoding.EncodeToString(buf), nil
 }
