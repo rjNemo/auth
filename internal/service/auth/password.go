@@ -12,8 +12,10 @@ import (
 	"unicode/utf8"
 )
 
-const saltLen = 32
-const passwordMinLength = 8
+const (
+	saltLen           = 32
+	passwordMinLength = 8
+)
 
 var ErrWeakPassword = errors.New("auth: password does not meet complexity requirements")
 

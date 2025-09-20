@@ -6,29 +6,37 @@ import (
 	"net/http"
 	"os"
 
+	"github.com/rjnemo/auth/internal/config"
 	"github.com/rjnemo/auth/internal/logging"
 	"github.com/rjnemo/auth/internal/server"
-	"gorm.io/gorm/logger"
 )
 
-const listenAddr = ":8000"
-
 func main() {
-	if err := run(logger); err != nil {
+	baseLogger := logging.New(os.Stdout, logging.ModeText, &slog.HandlerOptions{AddSource: true})
+
+	cfg, err := config.New()
+	if err != nil {
+		baseLogger.Error("configuration error", slog.Any("error", err))
+		os.Exit(1)
+	}
+
+	logger := logging.New(os.Stdout, cfg.LogMode, &slog.HandlerOptions{AddSource: cfg.Environment == "development"})
+	logger = logger.With(slog.String("env", cfg.Environment))
+
+	if err := run(cfg, logger); err != nil {
 		logger.Error("server exited", slog.Any("error", err))
 		os.Exit(1)
 	}
 }
 
-func run() error {
-	logger := logging.New(os.Stdout, logging.ModeText, &slog.HandlerOptions{AddSource: true})
-	srv, err := server.New(logger)
+func run(cfg *config.Config, logger *slog.Logger) error {
+	srv, err := server.New(*cfg, logger)
 	if err != nil {
 		return fmt.Errorf("initialise server: %w", err)
 	}
 
-	logger.Info("starting server", slog.String("addr", listenAddr))
-	if err := http.ListenAndServe(listenAddr, srv.Router()); err != nil {
+	logger.Info("starting server", slog.String("addr", fmt.Sprintf("http://localhost%s", cfg.ListenAddr)))
+	if err := http.ListenAndServe(cfg.ListenAddr, srv.Router()); err != nil {
 		return fmt.Errorf("listen: %w", err)
 	}
 

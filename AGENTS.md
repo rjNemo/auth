@@ -24,7 +24,7 @@ Trust `gofmt`; avoid manual formatting. Use CamelCase for exported Go identifier
 
 ## Testing Guidelines
 
-Adopt Go’s `testing` package with table-driven cases. Name files `<feature>_test.go`, colocated with the code under test. Run `go test ./...` (and `go test -cover ./...` for major features) before opening a PR, ensuring new branches maintain or raise coverage.
+Adopt Go’s `testing` package with table-driven cases. Name files `<feature>_test.go`, colocated with the code under test. Run `go test ./... -cover -count=1` before opening a PR so coverage is measured on fresh binaries; we don’t enforce a target, but avoid notable drops when adding code.
 
 ## Commit & Pull Request Guidelines
 

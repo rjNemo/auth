@@ -2,13 +2,13 @@ package server
 
 import (
 	"context"
-	"crypto/rand"
 	"fmt"
 	"html/template"
 	"io"
 	"log/slog"
 	"time"
 
+	"github.com/rjnemo/auth/internal/config"
 	"github.com/rjnemo/auth/internal/logging"
 	"github.com/rjnemo/auth/internal/service/auth"
 	"github.com/rjnemo/auth/web"
@@ -21,14 +21,15 @@ const (
 
 // Server holds HTTP dependencies for the application.
 type Server struct {
-	templates   *template.Template
-	authService *auth.Service
-	sessions    *SessionStore
-	logger      *slog.Logger
+	templates     *template.Template
+	authService   *auth.Service
+	sessions      *SessionStore
+	logger        *slog.Logger
+	configuration config.Config
 }
 
 // New constructs a Server with parsed templates and default state.
-func New(logger *slog.Logger) (*Server, error) {
+func New(cfg config.Config, logger *slog.Logger) (*Server, error) {
 	tmpl, err := template.ParseFS(
 		web.Templates,
 		"templates/login.html",
@@ -45,12 +46,7 @@ func New(logger *slog.Logger) (*Server, error) {
 		return nil, fmt.Errorf("seed user: %w", err)
 	}
 
-	secret := make([]byte, 32)
-	if _, err := rand.Read(secret); err != nil {
-		return nil, fmt.Errorf("session secret: %w", err)
-	}
-
-	sessionStore, err := NewSessionStore(secret)
+	sessionStore, err := NewSessionStore(cfg.SessionSecret)
 	if err != nil {
 		return nil, fmt.Errorf("session store: %w", err)
 	}
@@ -61,10 +57,11 @@ func New(logger *slog.Logger) (*Server, error) {
 	logger = logger.With(slog.String("service", "http"))
 
 	return &Server{
-		templates:   tmpl,
-		authService: auth.NewService(store),
-		sessions:    sessionStore,
-		logger:      logger,
+		templates:     tmpl,
+		authService:   auth.NewService(store),
+		sessions:      sessionStore,
+		logger:        logger,
+		configuration: cfg,
 	}, nil
 }
 
