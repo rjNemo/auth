@@ -14,9 +14,9 @@ Implement email/password authentication with secure password hashing, CSRF prote
 
 ## Build, Lint, and Test Commands
 
-- `go run ./cmd/server` starts the dev server on <http://localhost:8000>.
-- `go build ./...` (and `go build -o tmp/auth ./cmd/server`) validates compilation before any formatting or linting step.
-- After a successful build, run `gofmt -w ./...`, `go vet ./...`, `golangci-lint run` (if configured), and `go test ./...` to keep style, static checks, and regressions in check.
+- `make run` launches the server locally (defaults to <http://localhost:8000>), while `make dev` hot-reloads via Air.
+- `make build` compiles to `bin/auth-server`; always execute it before formatting, linting, or testing to honor the compile-first rule.
+- After a clean build, run `make fmt`, `make lint`, and `make test` so every change flows through the formatter, static analyzers, and `go test ./... -cover -count=1`.
 
 ## Coding Style & Naming Conventions
 

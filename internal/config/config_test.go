@@ -4,7 +4,7 @@ import (
 	"encoding/base64"
 	"testing"
 
-	"github.com/rjnemo/auth/internal/logging"
+	"github.com/rjnemo/auth/internal/driver/logging"
 )
 
 func TestNewDefaults(t *testing.T) {

@@ -9,7 +9,7 @@ import (
 	"time"
 
 	"github.com/rjnemo/auth/internal/config"
-	"github.com/rjnemo/auth/internal/logging"
+	"github.com/rjnemo/auth/internal/driver/logging"
 	"github.com/rjnemo/auth/internal/service/auth"
 	"github.com/rjnemo/auth/web"
 )

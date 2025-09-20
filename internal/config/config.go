@@ -7,7 +7,7 @@ import (
 	"os"
 	"strings"
 
-	"github.com/rjnemo/auth/internal/logging"
+	"github.com/rjnemo/auth/internal/driver/logging"
 )
 
 const (
