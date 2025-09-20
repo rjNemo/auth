@@ -12,6 +12,8 @@ import (
 	"github.com/rjnemo/auth/internal/driver/logging"
 	"github.com/rjnemo/auth/internal/service/auth"
 	"github.com/rjnemo/auth/web"
+	"golang.org/x/oauth2"
+	"golang.org/x/oauth2/google"
 )
 
 const (
@@ -26,6 +28,7 @@ type Server struct {
 	sessions      *SessionStore
 	logger        *slog.Logger
 	configuration config.Config
+	googleOAuth   *oauth2.Config
 }
 
 // New constructs a Server with parsed templates and default state.
@@ -57,12 +60,27 @@ func New(cfg config.Config, logger *slog.Logger) (*Server, error) {
 	}
 	logger = logger.With(slog.String("service", "http"))
 
+	var googleOAuthConfig *oauth2.Config
+	if cfg.GoogleOAuth.Enabled() {
+		googleOAuthConfig = &oauth2.Config{
+			ClientID:     cfg.GoogleOAuth.ClientID,
+			ClientSecret: cfg.GoogleOAuth.ClientSecret,
+			RedirectURL:  cfg.GoogleOAuth.RedirectURL,
+			Scopes: []string{
+				"https://www.googleapis.com/auth/userinfo.email",
+				"https://www.googleapis.com/auth/userinfo.profile",
+			},
+			Endpoint: google.Endpoint,
+		}
+	}
+
 	return &Server{
 		templates:     tmpl,
 		authService:   auth.NewService(store),
 		sessions:      sessionStore,
 		logger:        logger,
 		configuration: cfg,
+		googleOAuth:   googleOAuthConfig,
 	}, nil
 }
 
@@ -80,6 +98,7 @@ func seedUser(store auth.UserStore) error {
 		Email:        email,
 		PasswordSalt: salt,
 		PasswordHash: hash,
+		Provider:     auth.ProviderPassword,
 		CreatedAt:    time.Now().UTC(),
 	})
 }

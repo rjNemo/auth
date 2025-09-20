@@ -73,6 +73,33 @@ func TestNewShortSecretAccepted(t *testing.T) {
 	}
 }
 
+func TestNewGoogleOAuthPartialConfiguration(t *testing.T) {
+	t.Setenv("AUTH_SESSION_SECRET", base64.StdEncoding.EncodeToString(bytesOfLength(32)))
+	t.Setenv("AUTH_GOOGLE_CLIENT_ID", "client")
+	t.Setenv("AUTH_GOOGLE_CLIENT_SECRET", "")
+	if _, err := New(); err == nil {
+		t.Fatalf("expected error for partial google oauth config")
+	}
+}
+
+func TestNewGoogleOAuthConfigured(t *testing.T) {
+	t.Setenv("AUTH_SESSION_SECRET", base64.StdEncoding.EncodeToString(bytesOfLength(32)))
+	t.Setenv("AUTH_GOOGLE_CLIENT_ID", "client")
+	t.Setenv("AUTH_GOOGLE_CLIENT_SECRET", "secret")
+	t.Setenv("AUTH_GOOGLE_REDIRECT_URL", "http://localhost:8000/login/google/callback")
+
+	cfg, err := New()
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if !cfg.GoogleOAuth.Enabled() {
+		t.Fatalf("expected google oauth to be enabled")
+	}
+	if cfg.GoogleOAuth.ClientID != "client" {
+		t.Fatalf("expected client id to match, got %q", cfg.GoogleOAuth.ClientID)
+	}
+}
+
 func bytesOfLength(n int) []byte {
 	b := make([]byte, n)
 	for i := range b {

@@ -18,7 +18,7 @@ func TestServiceAuthenticate(t *testing.T) {
 	if err != nil {
 		t.Fatalf("hash password: %v", err)
 	}
-	if err := store.Create(ctx, User{Email: email, PasswordSalt: salt, PasswordHash: hash}); err != nil {
+	if err := store.Create(ctx, User{Email: email, PasswordSalt: salt, PasswordHash: hash, Provider: ProviderPassword}); err != nil {
 		t.Fatalf("seed user: %v", err)
 	}
 
@@ -70,7 +70,7 @@ func TestServiceLookupByEmail(t *testing.T) {
 	service := NewService(store)
 
 	email := MustUserEmail("lookup@example.com")
-	if err := store.Create(ctx, User{Email: email}); err != nil {
+	if err := store.Create(ctx, User{Email: email, Provider: ProviderPassword}); err != nil {
 		t.Fatalf("seed user: %v", err)
 	}
 
@@ -116,7 +116,7 @@ func TestServiceRegister(t *testing.T) {
 	service := NewService(store)
 
 	email := MustUserEmail("taken@example.com")
-	if err := store.Create(ctx, User{Email: email}); err != nil {
+	if err := store.Create(ctx, User{Email: email, Provider: ProviderPassword}); err != nil {
 		t.Fatalf("seed user: %v", err)
 	}
 
@@ -162,6 +162,68 @@ func TestServiceRegister(t *testing.T) {
 			}
 			if persisted.PasswordSalt == "" || persisted.PasswordHash == "" {
 				t.Fatal("expected password salt/hash to be stored")
+			}
+		})
+	}
+}
+
+func TestServiceEnsureExternalUser(t *testing.T) {
+	t.Parallel()
+
+	ctx := context.Background()
+	store := NewMemoryStore()
+	service := NewService(store)
+
+	googleEmail := MustUserEmail("google@example.com")
+	if err := store.Create(ctx, User{Email: googleEmail, Provider: ProviderGoogle}); err != nil {
+		t.Fatalf("seed external user: %v", err)
+	}
+
+	tests := map[string]struct {
+		email    UserEmail
+		provider string
+		wantErr  error
+		wantNew  bool
+	}{
+		"missing email":    {email: UserEmail(""), provider: ProviderGoogle, wantErr: ErrInvalidInput},
+		"missing provider": {email: MustUserEmail("new@example.com"), provider: "", wantErr: ErrProviderRequired},
+		"existing":         {email: googleEmail, provider: ProviderGoogle, wantErr: nil, wantNew: false},
+		"provision":        {email: MustUserEmail("brandnew@example.com"), provider: ProviderGoogle, wantErr: nil, wantNew: true},
+	}
+
+	for name, tc := range tests {
+		tc := tc
+		t.Run(name, func(t *testing.T) {
+			t.Parallel()
+
+			user, err := service.EnsureExternalUser(ctx, tc.email, tc.provider)
+			if tc.wantErr != nil {
+				if !errors.Is(err, tc.wantErr) {
+					t.Fatalf("expected %v, got %v", tc.wantErr, err)
+				}
+				if user != nil {
+					t.Fatalf("expected nil user, got %#v", user)
+				}
+				return
+			}
+			if err != nil {
+				t.Fatalf("unexpected error: %v", err)
+			}
+			if user == nil {
+				t.Fatal("expected user")
+			}
+			if user.Email != tc.email {
+				t.Fatalf("expected email %q, got %q", tc.email, user.Email)
+			}
+			if user.Provider != tc.provider {
+				t.Fatalf("expected provider %q, got %q", tc.provider, user.Provider)
+			}
+			persisted, err := store.FindByEmail(ctx, tc.email)
+			if err != nil {
+				t.Fatalf("expected user persisted: %v", err)
+			}
+			if tc.wantNew && persisted.CreatedAt.IsZero() {
+				t.Fatal("expected created at timestamp for new user")
 			}
 		})
 	}

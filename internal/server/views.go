@@ -17,18 +17,28 @@ func (s *Server) render(w http.ResponseWriter, name string, data any) {
 
 // PageData contains fields shared by the templates for now.
 type PageData struct {
-	Title        string
-	View         string
-	Email        string
-	Error        string
-	Info         string
-	CSRFToken    string
-	CreatedAt    string
-	CreatedAtISO string
+	Title              string
+	View               string
+	Email              string
+	Error              string
+	Info               string
+	CSRFToken          string
+	CreatedAt          string
+	CreatedAtISO       string
+	GoogleLoginURL     string
+	GoogleLoginEnabled bool
 }
 
 func newLoginData(email, errMsg, token string) PageData {
 	return PageData{Title: "Sign in · Auth Demo", View: "login", Email: email, Error: errMsg, CSRFToken: token}
+}
+
+func (s *Server) applyOAuthOptions(data PageData) PageData {
+	if s.googleOAuth != nil {
+		data.GoogleLoginEnabled = true
+		data.GoogleLoginURL = "/login/google"
+	}
+	return data
 }
 
 func newUnauthorizedData(errMsg, token string) PageData {

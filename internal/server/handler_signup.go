@@ -24,7 +24,7 @@ func (s *Server) signupPageHandler() http.HandlerFunc {
 			return
 		}
 
-		s.render(w, "signup.html", newSignupData(state.Email, "", state.CSRFToken))
+		s.render(w, "signup.html", s.applyOAuthOptions(newSignupData(state.Email, "", state.CSRFToken)))
 	}
 }
 
@@ -44,7 +44,7 @@ func (s *Server) signupHandler() http.HandlerFunc {
 		email, err := auth.NewUserEmail(emailValue)
 		if err != nil {
 			w.WriteHeader(http.StatusBadRequest)
-			s.render(w, "signup.html", newSignupData("", credentialRequiredMsg, state.CSRFToken))
+			s.render(w, "signup.html", s.applyOAuthOptions(newSignupData("", credentialRequiredMsg, state.CSRFToken)))
 			return
 		}
 
@@ -59,13 +59,13 @@ func (s *Server) signupHandler() http.HandlerFunc {
 			http.Redirect(w, r, "/dashboard", http.StatusSeeOther)
 		case errors.Is(err, auth.ErrWeakPassword):
 			w.WriteHeader(http.StatusBadRequest)
-			s.render(w, "signup.html", newSignupData(email.String(), weakPasswordMsg, state.CSRFToken))
+			s.render(w, "signup.html", s.applyOAuthOptions(newSignupData(email.String(), weakPasswordMsg, state.CSRFToken)))
 		case errors.Is(err, auth.ErrInvalidInput):
 			w.WriteHeader(http.StatusBadRequest)
-			s.render(w, "signup.html", newSignupData(email.String(), credentialRequiredMsg, state.CSRFToken))
+			s.render(w, "signup.html", s.applyOAuthOptions(newSignupData(email.String(), credentialRequiredMsg, state.CSRFToken)))
 		case errors.Is(err, auth.ErrEmailExists):
 			w.WriteHeader(http.StatusConflict)
-			s.render(w, "signup.html", newSignupData(email.String(), duplicateEmailMsg, state.CSRFToken))
+			s.render(w, "signup.html", s.applyOAuthOptions(newSignupData(email.String(), duplicateEmailMsg, state.CSRFToken)))
 		default:
 			logger.Error("register failed", slog.Any("error", err))
 			http.Error(w, "unexpected error", http.StatusInternalServerError)

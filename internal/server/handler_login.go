@@ -15,7 +15,7 @@ func (s *Server) loginPageHandler() http.HandlerFunc {
 			http.Redirect(w, r, "/dashboard", http.StatusSeeOther)
 			return
 		}
-		s.render(w, "login.html", newLoginData(state.Email, "", state.CSRFToken))
+		s.render(w, "login.html", s.applyOAuthOptions(newLoginData(state.Email, "", state.CSRFToken)))
 	}
 }
 
@@ -35,7 +35,7 @@ func (s *Server) loginHandler() http.HandlerFunc {
 		email, err := auth.NewUserEmail(emailInput)
 		if err != nil {
 			w.WriteHeader(http.StatusBadRequest)
-			s.render(w, "login.html", newLoginData("", credentialRequiredMsg, state.CSRFToken))
+			s.render(w, "login.html", s.applyOAuthOptions(newLoginData("", credentialRequiredMsg, state.CSRFToken)))
 			return
 		}
 
@@ -51,10 +51,10 @@ func (s *Server) loginHandler() http.HandlerFunc {
 
 		case errors.Is(err, auth.ErrWeakPassword):
 			w.WriteHeader(http.StatusBadRequest)
-			s.render(w, "login.html", newLoginData(email.String(), weakPasswordMsg, state.CSRFToken))
+			s.render(w, "login.html", s.applyOAuthOptions(newLoginData(email.String(), weakPasswordMsg, state.CSRFToken)))
 		case errors.Is(err, auth.ErrInvalidInput):
 			w.WriteHeader(http.StatusBadRequest)
-			s.render(w, "login.html", newLoginData(email.String(), credentialRequiredMsg, state.CSRFToken))
+			s.render(w, "login.html", s.applyOAuthOptions(newLoginData(email.String(), credentialRequiredMsg, state.CSRFToken)))
 		case errors.Is(err, auth.ErrInvalidCredentials):
 			s.renderLoginFailure(w, email, state.CSRFToken)
 		default:
@@ -66,5 +66,5 @@ func (s *Server) loginHandler() http.HandlerFunc {
 
 func (s *Server) renderLoginFailure(w http.ResponseWriter, email auth.UserEmail, token string) {
 	w.WriteHeader(http.StatusUnauthorized)
-	s.render(w, "login.html", newLoginData(email.String(), invalidCredentialsMsg, token))
+	s.render(w, "login.html", s.applyOAuthOptions(newLoginData(email.String(), invalidCredentialsMsg, token)))
 }

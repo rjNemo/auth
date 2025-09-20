@@ -10,6 +10,8 @@ import (
 func (s *Server) registerRoutes(r chi.Router) {
 	r.Get("/", s.loginPageHandler())
 	r.Post("/login", s.loginHandler())
+	r.Get("/login/google", s.googleLoginHandler())
+	r.Get("/login/google/callback", s.googleCallbackHandler())
 	r.Post("/logout", s.logoutHandler())
 	r.Get("/signup", s.signupPageHandler())
 	r.Post("/signup", s.signupHandler())

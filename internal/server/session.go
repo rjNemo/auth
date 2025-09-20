@@ -13,6 +13,7 @@ const (
 	sessionLifetime            = 12 * time.Hour
 	sessionSecretMinLength     = 32
 	csrfTokenByteLength    int = 32
+	oauthStateByteLength   int = 32
 )
 
 // SessionStore persists session data using secure HTTP cookies.
@@ -33,9 +34,10 @@ func NewSessionStore(secret []byte) (*SessionStore, error) {
 
 // SessionState holds per-request session data after loading.
 type SessionState struct {
-	Authenticated bool
-	Email         string
-	CSRFToken     string
+	Authenticated bool   `json:"authenticated"`
+	Email         string `json:"email"`
+	CSRFToken     string `json:"csrf_token"`
+	OAuthState    string `json:"oauth_state"`
 }
 
 // Load extracts session data from the request cookies.
@@ -98,4 +100,12 @@ func ensureCSRFToken(state SessionState) (SessionState, error) {
 	}
 	state.CSRFToken = base64.RawURLEncoding.EncodeToString(token)
 	return state, nil
+}
+
+func generateOAuthState() (string, error) {
+	buf := make([]byte, oauthStateByteLength)
+	if _, err := rand.Read(buf); err != nil {
+		return "", err
+	}
+	return base64.RawURLEncoding.EncodeToString(buf), nil
 }

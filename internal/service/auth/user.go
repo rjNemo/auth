@@ -14,6 +14,7 @@ type User struct {
 	Email        UserEmail
 	PasswordSalt string
 	PasswordHash string
+	Provider     string
 	CreatedAt    time.Time
 }
 

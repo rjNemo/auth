@@ -11,10 +11,13 @@ import (
 )
 
 const (
-	envListenAddr    = "AUTH_LISTEN_ADDR"
-	envLogMode       = "AUTH_LOG_MODE"
-	envEnvironment   = "AUTH_ENV"
-	envSessionSecret = "AUTH_SESSION_SECRET"
+	envListenAddr         = "AUTH_LISTEN_ADDR"
+	envLogMode            = "AUTH_LOG_MODE"
+	envEnvironment        = "AUTH_ENV"
+	envSessionSecret      = "AUTH_SESSION_SECRET"
+	envGoogleClientID     = "AUTH_GOOGLE_CLIENT_ID"
+	envGoogleClientSecret = "AUTH_GOOGLE_CLIENT_SECRET"
+	envGoogleRedirectURL  = "AUTH_GOOGLE_REDIRECT_URL"
 
 	defaultListenAddr  = ":8000"
 	defaultEnvironment = "development"
@@ -26,6 +29,19 @@ type Config struct {
 	LogMode       logging.Mode
 	Environment   string
 	SessionSecret []byte
+	GoogleOAuth   GoogleOAuthConfig
+}
+
+// GoogleOAuthConfig holds configuration for Google OAuth2 login.
+type GoogleOAuthConfig struct {
+	ClientID     string
+	ClientSecret string
+	RedirectURL  string
+}
+
+// Enabled reports whether Google OAuth2 is fully configured.
+func (g GoogleOAuthConfig) Enabled() bool {
+	return g.ClientID != "" && g.ClientSecret != "" && g.RedirectURL != ""
 }
 
 // New loads configuration from environment variables, applying defaults and validation.
@@ -47,12 +63,34 @@ func New() (*Config, error) {
 		return nil, fmt.Errorf("invalid %s: %w", envSessionSecret, err)
 	}
 
+	googleOAuth := GoogleOAuthConfig{
+		ClientID:     strings.TrimSpace(os.Getenv(envGoogleClientID)),
+		ClientSecret: strings.TrimSpace(os.Getenv(envGoogleClientSecret)),
+		RedirectURL:  strings.TrimSpace(os.Getenv(envGoogleRedirectURL)),
+	}
+
+	if partiallyConfigured(googleOAuth) {
+		return nil, fmt.Errorf("incomplete google oauth configuration: set %s, %s, and %s", envGoogleClientID, envGoogleClientSecret, envGoogleRedirectURL)
+	}
+
 	cfg := &Config{
 		ListenAddr:    listenAddr,
 		LogMode:       logMode,
 		Environment:   environment,
 		SessionSecret: secret,
+		GoogleOAuth:   googleOAuth,
 	}
 
 	return cfg, nil
+}
+
+func partiallyConfigured(cfg GoogleOAuthConfig) bool {
+	switch {
+	case cfg.ClientID == "" && cfg.ClientSecret == "" && cfg.RedirectURL == "":
+		return false
+	case cfg.ClientID == "" || cfg.ClientSecret == "" || cfg.RedirectURL == "":
+		return true
+	default:
+		return false
+	}
 }
