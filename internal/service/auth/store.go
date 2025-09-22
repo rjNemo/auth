@@ -7,8 +7,9 @@ import (
 
 // ErrUserNotFound signals no user exists for the provided lookup criteria.
 var (
-	ErrUserNotFound  = errors.New("auth: user not found")
-	ErrEmailRequired = errors.New("auth: email required")
+	ErrUserNotFound    = errors.New("auth: user not found")
+	ErrEmailRequired   = errors.New("auth: email required")
+	ErrSubjectRequired = errors.New("auth: oauth subject required")
 )
 
 // UserStore defines persistence expectations for user lookups.

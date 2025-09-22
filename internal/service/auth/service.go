@@ -20,7 +20,6 @@ var (
 )
 
 const (
-	userIDByteLength = 16
 	// ProviderPassword identifies accounts managed via email/password.
 	ProviderPassword = "password"
 	// ProviderGoogle identifies accounts authenticated via Google OAuth2.
@@ -112,12 +111,15 @@ func (s *Service) Register(ctx context.Context, email UserEmail, password string
 }
 
 // EnsureExternalUser retrieves or provisions an account authenticated by an external provider.
-func (s *Service) EnsureExternalUser(ctx context.Context, email UserEmail, provider string) (*User, error) {
+func (s *Service) EnsureExternalUser(ctx context.Context, email UserEmail, provider, subject string, verified bool) (*User, error) {
 	if email.IsZero() {
 		return nil, ErrInvalidInput
 	}
 	if strings.TrimSpace(provider) == "" {
 		return nil, ErrProviderRequired
+	}
+	if strings.TrimSpace(subject) == "" {
+		return nil, ErrSubjectRequired
 	}
 
 	account, err := s.store.FindByEmail(ctx, email)
@@ -134,10 +136,12 @@ func (s *Service) EnsureExternalUser(ctx context.Context, email UserEmail, provi
 	}
 
 	user := User{
-		ID:        id,
-		Email:     email,
-		Provider:  provider,
-		CreatedAt: time.Now().UTC(),
+		ID:                 id,
+		Email:              email,
+		Provider:           provider,
+		OAuthSubject:       subject,
+		OAuthEmailVerified: verified,
+		CreatedAt:          time.Now().UTC(),
 	}
 
 	if err := s.store.Create(ctx, user); err != nil {

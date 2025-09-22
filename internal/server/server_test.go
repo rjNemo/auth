@@ -11,6 +11,7 @@ import (
 
 	"github.com/rjnemo/auth/internal/config"
 	"github.com/rjnemo/auth/internal/driver/logging"
+	"github.com/rjnemo/auth/internal/service/auth"
 )
 
 func newTestServer(t *testing.T) *Server {
@@ -26,7 +27,9 @@ func newTestServer(t *testing.T) *Server {
 
 	logger := logging.New(io.Discard, logging.ModeText, nil)
 
-	srv, err := New(cfg, logger)
+	store := auth.NewMemoryStore()
+	service := auth.NewService(store)
+	srv, err := New(cfg, service, logger)
 	if err != nil {
 		t.Fatalf("new server: %v", err)
 	}
@@ -51,7 +54,9 @@ func newGoogleTestServer(t *testing.T) *Server {
 
 	logger := logging.New(io.Discard, logging.ModeText, nil)
 
-	srv, err := New(cfg, logger)
+	store := auth.NewMemoryStore()
+	service := auth.NewService(store)
+	srv, err := New(cfg, service, logger)
 	if err != nil {
 		t.Fatalf("new google server: %v", err)
 	}

@@ -175,20 +175,23 @@ func TestServiceEnsureExternalUser(t *testing.T) {
 	service := NewService(store)
 
 	googleEmail := MustUserEmail("google@example.com")
-	if err := store.Create(ctx, User{Email: googleEmail, Provider: ProviderGoogle}); err != nil {
+	if err := store.Create(ctx, User{ID: "existing-google", Email: googleEmail, Provider: ProviderGoogle, OAuthSubject: "existing-sub"}); err != nil {
 		t.Fatalf("seed external user: %v", err)
 	}
 
 	tests := map[string]struct {
 		email    UserEmail
 		provider string
+		subject  string
+		verified bool
 		wantErr  error
 		wantNew  bool
 	}{
-		"missing email":    {email: UserEmail(""), provider: ProviderGoogle, wantErr: ErrInvalidInput},
-		"missing provider": {email: MustUserEmail("new@example.com"), provider: "", wantErr: ErrProviderRequired},
-		"existing":         {email: googleEmail, provider: ProviderGoogle, wantErr: nil, wantNew: false},
-		"provision":        {email: MustUserEmail("brandnew@example.com"), provider: ProviderGoogle, wantErr: nil, wantNew: true},
+		"missing email":    {email: UserEmail(""), provider: ProviderGoogle, subject: "sub", wantErr: ErrInvalidInput},
+		"missing provider": {email: MustUserEmail("new@example.com"), provider: "", subject: "sub", wantErr: ErrProviderRequired},
+		"missing subject":  {email: MustUserEmail("new@example.com"), provider: ProviderGoogle, subject: "", wantErr: ErrSubjectRequired},
+		"existing":         {email: googleEmail, provider: ProviderGoogle, subject: "existing-sub", wantErr: nil, wantNew: false},
+		"provision":        {email: MustUserEmail("brandnew@example.com"), provider: ProviderGoogle, subject: "new-sub", verified: true, wantErr: nil, wantNew: true},
 	}
 
 	for name, tc := range tests {
@@ -196,7 +199,7 @@ func TestServiceEnsureExternalUser(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 
-			user, err := service.EnsureExternalUser(ctx, tc.email, tc.provider)
+			user, err := service.EnsureExternalUser(ctx, tc.email, tc.provider, tc.subject, tc.verified)
 			if tc.wantErr != nil {
 				if !errors.Is(err, tc.wantErr) {
 					t.Fatalf("expected %v, got %v", tc.wantErr, err)
@@ -221,6 +224,9 @@ func TestServiceEnsureExternalUser(t *testing.T) {
 			persisted, err := store.FindByEmail(ctx, tc.email)
 			if err != nil {
 				t.Fatalf("expected user persisted: %v", err)
+			}
+			if persisted.OAuthSubject != "" && persisted.OAuthSubject != tc.subject {
+				t.Fatalf("expected oauth subject %q, got %q", tc.subject, persisted.OAuthSubject)
 			}
 			if tc.wantNew && persisted.CreatedAt.IsZero() {
 				t.Fatal("expected created at timestamp for new user")

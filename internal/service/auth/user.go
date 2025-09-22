@@ -1,21 +1,23 @@
 package auth
 
 import (
-	"crypto/rand"
-	"encoding/base64"
 	"errors"
 	"strings"
 	"time"
+
+	"github.com/google/uuid"
 )
 
 // User represents authenticated account details.
 type User struct {
-	ID           string
-	Email        UserEmail
-	PasswordSalt string
-	PasswordHash string
-	Provider     string
-	CreatedAt    time.Time
+	ID                 string
+	Email              UserEmail
+	PasswordSalt       string
+	PasswordHash       string
+	Provider           string
+	OAuthSubject       string
+	OAuthEmailVerified bool
+	CreatedAt          time.Time
 }
 
 // UserEmail represents a canonical email string.
@@ -49,11 +51,6 @@ func (e UserEmail) IsZero() bool {
 	return e == ""
 }
 
-// TODO: could be UUID. return a dedicated type
 func generateUserID() (string, error) {
-	buf := make([]byte, userIDByteLength)
-	if _, err := rand.Read(buf); err != nil {
-		return "", err
-	}
-	return base64.RawURLEncoding.EncodeToString(buf), nil
+	return uuid.NewString(), nil
 }

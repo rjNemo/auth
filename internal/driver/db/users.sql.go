@@ -13,81 +13,63 @@ import (
 )
 
 const createUser = `-- name: CreateUser :one
-INSERT INTO users (email, display_name)
+INSERT INTO users (id, email)
 VALUES ($1, $2)
-RETURNING id, email, display_name, created_at
+RETURNING id, email, created_at
 `
 
 type CreateUserParams struct {
-	Email       string      `json:"email"`
-	DisplayName pgtype.Text `json:"display_name"`
+	ID    uuid.UUID `json:"id"`
+	Email string    `json:"email"`
 }
 
 type CreateUserRow struct {
-	ID          uuid.UUID          `json:"id"`
-	Email       string             `json:"email"`
-	DisplayName pgtype.Text        `json:"display_name"`
-	CreatedAt   pgtype.Timestamptz `json:"created_at"`
+	ID        uuid.UUID          `json:"id"`
+	Email     string             `json:"email"`
+	CreatedAt pgtype.Timestamptz `json:"created_at"`
 }
 
 func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) (CreateUserRow, error) {
-	row := q.db.QueryRow(ctx, createUser, arg.Email, arg.DisplayName)
+	row := q.db.QueryRow(ctx, createUser, arg.ID, arg.Email)
 	var i CreateUserRow
-	err := row.Scan(
-		&i.ID,
-		&i.Email,
-		&i.DisplayName,
-		&i.CreatedAt,
-	)
+	err := row.Scan(&i.ID, &i.Email, &i.CreatedAt)
 	return i, err
 }
 
 const getUserByEmail = `-- name: GetUserByEmail :one
-SELECT id, email, display_name, created_at
+SELECT id, email, created_at
 FROM users
 WHERE email = $1
 `
 
 type GetUserByEmailRow struct {
-	ID          uuid.UUID          `json:"id"`
-	Email       string             `json:"email"`
-	DisplayName pgtype.Text        `json:"display_name"`
-	CreatedAt   pgtype.Timestamptz `json:"created_at"`
+	ID        uuid.UUID          `json:"id"`
+	Email     string             `json:"email"`
+	CreatedAt pgtype.Timestamptz `json:"created_at"`
 }
 
 func (q *Queries) GetUserByEmail(ctx context.Context, email string) (GetUserByEmailRow, error) {
 	row := q.db.QueryRow(ctx, getUserByEmail, email)
 	var i GetUserByEmailRow
-	err := row.Scan(
-		&i.ID,
-		&i.Email,
-		&i.DisplayName,
-		&i.CreatedAt,
-	)
+	err := row.Scan(&i.ID, &i.Email, &i.CreatedAt)
 	return i, err
 }
 
 const getUserByID = `-- name: GetUserByID :one
-SELECT id, email, display_name, created_at
+SELECT id, email, created_at
 FROM users
 WHERE id = $1
 `
 
 type GetUserByIDRow struct {
-	ID          uuid.UUID          `json:"id"`
-	Email       string             `json:"email"`
-	DisplayName pgtype.Text        `json:"display_name"`
-	CreatedAt   pgtype.Timestamptz `json:"created_at"`
+	ID        uuid.UUID          `json:"id"`
+	Email     string             `json:"email"`
+	CreatedAt pgtype.Timestamptz `json:"created_at"`
 }
 
 func (q *Queries) GetUserByID(ctx context.Context, id uuid.UUID) (GetUserByIDRow, error) {
 	row := q.db.QueryRow(ctx, getUserByID, id)
 	var i GetUserByIDRow
-	err := row.Scan(
-		&i.ID,
-		&i.Email,
-		&i.DisplayName,
-		&i.CreatedAt,
-	)
+	err := row.Scan(&i.ID, &i.Email, &i.CreatedAt)
 	return i, err
 }

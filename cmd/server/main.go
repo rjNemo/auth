@@ -1,14 +1,17 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"log/slog"
 	"net/http"
 	"os"
 
+	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/rjnemo/auth/internal/config"
 	"github.com/rjnemo/auth/internal/driver/logging"
 	"github.com/rjnemo/auth/internal/server"
+	"github.com/rjnemo/auth/internal/service/auth"
 )
 
 func main() {
@@ -30,7 +33,17 @@ func main() {
 }
 
 func run(cfg *config.Config, logger *slog.Logger) error {
-	srv, err := server.New(*cfg, logger)
+	ctx := context.Background()
+	pool, err := pgxpool.New(ctx, cfg.DatabaseURL)
+	if err != nil {
+		return fmt.Errorf("connect database: %w", err)
+	}
+	defer pool.Close()
+
+	store := auth.NewSQLStore(pool)
+	service := auth.NewService(store)
+
+	srv, err := server.New(*cfg, service, logger)
 	if err != nil {
 		return fmt.Errorf("initialise server: %w", err)
 	}

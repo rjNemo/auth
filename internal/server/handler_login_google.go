@@ -7,6 +7,7 @@ import (
 	"io"
 	"log/slog"
 	"net/http"
+	"strings"
 
 	"golang.org/x/oauth2"
 
@@ -152,7 +153,16 @@ func (s *Server) googleCallbackHandler() http.HandlerFunc {
 			return
 		}
 
-		account, err := s.authService.EnsureExternalUser(r.Context(), email, auth.ProviderGoogle)
+		if strings.TrimSpace(info.ID) == "" {
+			logger.Warn("google returned empty subject")
+			if !saveState() {
+				return
+			}
+			respondWithLogin(http.StatusUnauthorized, googleAuthFailedMsg)
+			return
+		}
+
+		account, err := s.authService.EnsureExternalUser(r.Context(), email, auth.ProviderGoogle, info.ID, info.VerifiedEmail)
 		if err != nil {
 			logger.Error("ensure external user failed", slog.Any("error", err))
 			if !saveState() {
