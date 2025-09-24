@@ -1,0 +1,40 @@
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: auth-server:latest
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      AUTH_LISTEN_ADDR: ":8000"
+      AUTH_ENV: ${AUTH_ENV:-production}
+      AUTH_LOG_MODE: ${AUTH_LOG_MODE:-json}
+      AUTH_SESSION_SECRET: ${AUTH_SESSION_SECRET:?set AUTH_SESSION_SECRET to a base64-encoded value}
+      AUTH_DATABASE_URL: postgres://${POSTGRES_USER:-auth_app}:${POSTGRES_PASSWORD:-change-me}@db:5432/${POSTGRES_DB:-auth}?sslmode=disable
+      AUTH_GOOGLE_CLIENT_ID: ${AUTH_GOOGLE_CLIENT_ID:-}
+      AUTH_GOOGLE_CLIENT_SECRET: ${AUTH_GOOGLE_CLIENT_SECRET:-}
+      AUTH_GOOGLE_REDIRECT_URL: ${AUTH_GOOGLE_REDIRECT_URL:-}
+    ports:
+      - "8000:8000"
+    restart: unless-stopped
+
+  db:
+    image: postgres:16.4
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-auth}
+      POSTGRES_USER: ${POSTGRES_USER:-auth_app}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-change-me}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -d $${POSTGRES_DB} -U $${POSTGRES_USER}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+volumes:
+  postgres_data:
+    driver: local

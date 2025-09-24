@@ -52,10 +52,13 @@ Settings are sourced from environment variables (see [.env](./.env)).
 
 ## Database Tooling
 
-Migrations live in [`internal/driver/db/migrations`](./internal/driver/db/migrations) and are managed with
-[Goose](https://github.com/pressly/goose). Point `AUTH_DATABASE_URL` at your PostgreSQL instance—`postgres://localhost/auth_dev?sslmode=disable`
-is a good local default—then use the Makefile helpers (`make migrate-up`, `make migrate-status`, etc.) to evolve the schema. The same DSN drives
-[`sqlc`](https://sqlc.dev/) generation with `make sqlc-generate`, which reads [`internal/driver/db/sqlc.yaml`](./internal/driver/db/sqlc.yaml) and
+Migrations live in [`internal/driver/db/migrations`](./internal/driver/db/migrations)
+and are managed with [Goose](https://github.com/pressly/goose).
+Point `AUTH_DATABASE_URL` at your PostgreSQL instance—`postgres://localhost/auth_dev?sslmode=disable`
+is a good local default—then use the Makefile helpers
+(`make migrate-up`, `make migrate-status`, etc.) to evolve the schema.
+The same DSN drives [`sqlc`](https://sqlc.dev/) generation with `make sqlc-generate`,
+which reads [`internal/driver/db/sqlc.yaml`](./internal/driver/db/sqlc.yaml) and
 emits typed data-access code alongside the queries.
 
 ## Project Layout
@@ -74,6 +77,24 @@ emits typed data-access code alongside the queries.
 - [htmx](https://htmx.org/) — progressive enhancement via HTML attributes.
 - [Alpine.js](https://alpinejs.dev/) — declarative client-side interactions.
 - [Pico.css](https://picocss.com/) — minimal, semantic-first styling.
+
+## Deployment
+
+Use Docker Compose to run the application and its PostgreSQL dependency on a VPS.
+The database service is kept on the private Compose network (no host port published).
+
+1. Provision secrets as environment variables
+   (or in an env file referenced via `docker compose --env-file`):
+   - `AUTH_SESSION_SECRET` must be a base64-encoded random value.
+   - `POSTGRES_PASSWORD` and optional `POSTGRES_USER`/`POSTGRES_DB` override the
+     database credentials referenced by `AUTH_DATABASE_URL`.
+   - Google OAuth values are optional but required for social login.
+2. Build images with `make compose-build` (or `docker compose build`).
+3. Start the stack in the background: `docker compose up -d`.
+4. Monitor logs with `docker compose logs -f app`.
+
+To run administrative commands, exec into the containers
+(e.g. `docker compose exec db psql`).
 
 ## License
 

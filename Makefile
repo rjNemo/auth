@@ -9,7 +9,7 @@ ifeq ($(DB_URL),)
 DB_URL := postgres://localhost/auth_dev?sslmode=disable
 endif
 
-.PHONY: run dev build test fmt lint tidy clean migrate-status migrate-up migrate-down migrate-reset migrate-new sqlc-generate
+.PHONY: run dev build test fmt lint tidy clean migrate-status migrate-up migrate-down migrate-reset migrate-new sqlc-generate compose-build
 
 run:
 	go run ./cmd/server
@@ -57,3 +57,6 @@ migrate-new:
 
 sqlc-generate:
 	sqlc generate -f $(SQLC_CONFIG)
+
+compose-build:
+	docker compose build
